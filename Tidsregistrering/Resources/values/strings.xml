@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Tidsregistrering</string>
+    <string name="admin">Administrera</string>
+    <string name="admin_pin_title">Administratörs-PIN</string>
+    <string name="cancel">Avbryt</string>
+    <string name="continue_label">Fortsätt</string>
+    <string name="save">Spara</string>
+    <string name="wrong_pin">Fel PIN-kod.</string>
+    <string name="add_exercise">Lägg till träning</string>
+    <string name="exercise_name">Träningsnamn</string>
+    <string name="exercise_time">Tid (t.ex. 18:00)</string>
+    <string name="invalid_exercise">Ange namn och giltig tid.</string>
+    <string name="no_exercises">Inga träningar ännu. Öppna Administrera för att lägga till en.</string>
+    <string name="add_participant">Lägg till deltagare</string>
+    <string name="absent">Ej närvarande</string>
+    <string name="present">Närvarande</string>
+    <string name="first_name">Förnamn</string>
+    <string name="surname">Efternamn</string>
+    <string name="personal_number">Personnummer (12 siffror)</string>
+    <string name="trainer">Tränare</string>
+    <string name="required_participant_fields">Fyll i förnamn, efternamn och personnummer.</string>
+    <string name="save_failed">Kunde inte spara ändringen lokalt.</string>
+    <string-array name="weekdays">
+        <item>Måndag</item><item>Tisdag</item><item>Onsdag</item><item>Torsdag</item><item>Fredag</item><item>Lördag</item><item>Söndag</item>
+    </string-array>
+</resources>

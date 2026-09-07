@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+  <EditText android:id="@+id/first_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/first_name" android:inputType="textCapWords" />
+  <EditText android:id="@+id/surname" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/surname" android:inputType="textCapWords" />
+  <EditText android:id="@+id/personal_number" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/personal_number" android:inputType="number" android:maxLength="12" />
+  <CheckBox android:id="@+id/trainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/trainer" />
+</LinearLayout>
