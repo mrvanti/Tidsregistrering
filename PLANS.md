@@ -41,27 +41,27 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 1.2 Exercise repository
 
-- [ ] Create, list, retrieve, and delete exercises.
-- [ ] Sort exercises by time, weekday, then name.
-- [ ] Prevent or define handling for duplicate exercises.
+- [x] Create, list, retrieve, and delete exercises.
+- [x] Sort exercises by time, weekday, then name.
+- [x] Prevent or define handling for duplicate exercises.
 
 ### 1.3 Participant repository
 
-- [ ] Create, list, and delete exercise-owned participants.
-- [ ] Store first name, surname, 12-digit personal number, and trainer flag.
-- [ ] Derive the displayed `YYMMDD` safely from the stored personal number.
+- [x] Create, list, and delete exercise-owned participants.
+- [x] Store first name, surname, 12-digit personal number, and trainer flag.
+- [x] Derive the displayed `YYMMDD` safely from the stored personal number.
 
 ### 1.4 Attendance repository
 
-- [ ] Create/retrieve an attendance session for an exercise and date.
-- [ ] Mark a participant present or absent without deleting participant data.
-- [ ] Query raw attendance by exercise and date range for export.
-- [ ] Clear attendance records while preserving exercises and participants.
+- [x] Create/retrieve an attendance session for an exercise and date.
+- [x] Mark a participant present or absent without deleting participant data.
+- [x] Query raw attendance by exercise and date range for export.
+- [x] Clear attendance records while preserving exercises and participants.
 
 ### 1.5 Data-layer verification
 
-- [ ] Unit-test CRUD, sort order, restart persistence, and deletion behavior.
-- [ ] Unit-test attendance state changes and bulk clearing.
+- [x] Unit-test CRUD, sort order, restart persistence, and deletion behavior.
+- [x] Unit-test attendance state changes and bulk clearing.
 
 ## 2. Main attendance experience
 

@@ -13,5 +13,8 @@
   <ItemGroup>
     <Compile Include="..\Tidsregistrering\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
     <Compile Include="..\Tidsregistrering\Data\AppDataMigration.cs" Link="Data\AppDataMigration.cs" />
+    <Compile Include="..\Tidsregistrering\Data\ExerciseRepository.cs" Link="Data\ExerciseRepository.cs" />
+    <Compile Include="..\Tidsregistrering\Data\ParticipantRepository.cs" Link="Data\ParticipantRepository.cs" />
+    <Compile Include="..\Tidsregistrering\Data\AttendanceRepository.cs" Link="Data\AttendanceRepository.cs" />
   </ItemGroup>
 </Project>

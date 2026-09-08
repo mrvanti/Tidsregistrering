@@ -12,6 +12,9 @@ public class MainActivity : Activity
 {
     private AppData data = new();
     private LocalStore store = null!;
+    private ExerciseRepository exercises = null!;
+    private ParticipantRepository participants = null!;
+    private AttendanceRepository attendance = null!;
     private Spinner exercisePicker = null!;
     private ListView absentList = null!;
     private ListView presentList = null!;
@@ -38,6 +41,9 @@ public class MainActivity : Activity
 
         store = new LocalStore(this);
         data = store.Load();
+        exercises = new ExerciseRepository(data);
+        participants = new ParticipantRepository(data);
+        attendance = new AttendanceRepository(data);
         exercisePicker = FindViewById<Spinner>(Resource.Id.exercise_picker)!;
         absentList = FindViewById<ListView>(Resource.Id.absent_list)!;
         presentList = FindViewById<ListView>(Resource.Id.present_list)!;
@@ -83,11 +89,6 @@ public class MainActivity : Activity
         ? shownExercises[exercisePicker.SelectedItemPosition]
         : null;
 
-    private IEnumerable<Exercise> SortedExercises() => data.Exercises
-        .OrderBy(exercise => exercise.Time)
-        .ThenBy(exercise => exercise.SwedishWeekdayOrder)
-        .ThenBy(exercise => exercise.Name, StringComparer.CurrentCultureIgnoreCase);
-
     private void UpdateSessionDate() => FindViewById<TextView>(Resource.Id.session_date)!.Text =
         CurrentDate.ToString("dddd d MMMM", new System.Globalization.CultureInfo("sv-SE"));
 
@@ -114,7 +115,7 @@ public class MainActivity : Activity
 
     private void RefreshExercises(Guid? selectedId = null)
     {
-        shownExercises = SortedExercises().ToList();
+        shownExercises = exercises.ListSorted().ToList();
         exercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
         var position = selectedId is null ? 0 : shownExercises.FindIndex(exercise => exercise.Id == selectedId);
         if (position >= 0)
@@ -141,19 +142,14 @@ public class MainActivity : Activity
         emptyState.Visibility = Android.Views.ViewStates.Gone;
         addParticipantButton.Enabled = true;
 
-        var participants = data.Participants
-            .Where(participant => participant.ExerciseId == exercise.Id)
-            .Where(participant => !participant.IsArchived)
-            .OrderBy(participant => participant.Surname, StringComparer.CurrentCultureIgnoreCase)
-            .ThenBy(participant => participant.FirstName, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
-        var presentIds = data.AttendanceEntries
-            .Where(entry => entry.ExerciseId == exercise.Id && entry.Date == CurrentDate && entry.IsPresent)
+        var exerciseParticipants = participants.ListForExercise(exercise.Id);
+        var presentIds = attendance.GetForSession(exercise.Id, CurrentDate)
+            .Where(entry => entry.IsPresent)
             .Select(entry => entry.ParticipantId)
             .ToHashSet();
 
-        shownAbsent = participants.Where(participant => !presentIds.Contains(participant.Id)).ToList();
-        shownPresent = participants.Where(participant => presentIds.Contains(participant.Id)).ToList();
+        shownAbsent = exerciseParticipants.Where(participant => !presentIds.Contains(participant.Id)).ToList();
+        shownPresent = exerciseParticipants.Where(participant => presentIds.Contains(participant.Id)).ToList();
         absentList.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, shownAbsent.Select(participant => participant.ToString()).ToList());
         presentList.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, shownPresent.Select(participant => participant.ToString()).ToList());
     }
@@ -249,21 +245,7 @@ public class MainActivity : Activity
 
     private void ArchiveParticipant(Participant participant, Exercise exercise)
     {
-        var index = data.Participants.FindIndex(candidate => candidate.Id == participant.Id);
-        if (index < 0) return;
-
-        data.Participants[index] = new Participant
-        {
-            Id = participant.Id,
-            ExerciseId = participant.ExerciseId,
-            CreatedAtUtc = participant.CreatedAtUtc,
-            ArchivedAtUtc = DateTimeOffset.UtcNow,
-            FirstName = participant.FirstName,
-            Surname = participant.Surname,
-            PersonalNumber = participant.PersonalNumber,
-            IsTrainer = participant.IsTrainer,
-            IsArchived = true
-        };
+        if (!participants.Archive(participant.Id)) return;
         removingParticipant = false;
         removeParticipantButton.SetText(Resource.String.remove_participant);
         SaveAndRefresh(exercise.Id);
@@ -283,14 +265,19 @@ public class MainActivity : Activity
         dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
         dialog.SetPositiveButton(Resource.String.save, (_, _) =>
             {
-                if (string.IsNullOrWhiteSpace(name.Text) || !TimeOnly.TryParse(time.Text, out _))
+                if (string.IsNullOrWhiteSpace(name.Text) || !TimeOnly.TryParse(time.Text, out var parsedTime))
                 {
                     Toast.MakeText(this, Resource.String.invalid_exercise, ToastLength.Long)!.Show();
                     return;
                 }
 
-                var exercise = new Exercise { Name = name.Text.Trim(), Time = time.Text.Trim(), Weekday = (DayOfWeek)weekday.SelectedItemPosition + 1 };
-                data.Exercises.Add(exercise);
+                var exercise = new Exercise { Name = name.Text.Trim(), Time = parsedTime.ToString("HH:mm"), Weekday = (DayOfWeek)weekday.SelectedItemPosition + 1 };
+                if (!exercises.TryAdd(exercise))
+                {
+                    Toast.MakeText(this, Resource.String.duplicate_exercise, ToastLength.Long)!.Show();
+                    return;
+                }
+
                 SaveAndRefresh(exercise.Id);
             });
         dialog.Show();
@@ -319,7 +306,7 @@ public class MainActivity : Activity
                     return;
                 }
 
-                data.Participants.Add(new Participant
+                participants.Add(new Participant
                 {
                     ExerciseId = exercise.Id,
                     FirstName = firstName.Text.Trim(),
@@ -338,15 +325,7 @@ public class MainActivity : Activity
         if (position < 0 || position >= participants.Count || SelectedExercise is not Exercise exercise) return;
         var participant = participants[position];
 
-        var session = data.AttendanceSessions.FirstOrDefault(candidate => candidate.ExerciseId == exercise.Id && candidate.Date == CurrentDate);
-        if (session is null)
-        {
-            session = new AttendanceSession { ExerciseId = exercise.Id, Date = CurrentDate };
-            data.AttendanceSessions.Add(session);
-        }
-
-        data.AttendanceEntries.RemoveAll(entry => entry.ExerciseId == exercise.Id && entry.ParticipantId == participant.Id && entry.Date == CurrentDate);
-        data.AttendanceEntries.Add(new AttendanceEntry { SessionId = session.Id, ExerciseId = exercise.Id, ParticipantId = participant.Id, Date = CurrentDate, IsPresent = present });
+        attendance.SetAttendance(exercise.Id, participant.Id, CurrentDate, present);
         SaveAndRefresh(exercise.Id);
     }
 

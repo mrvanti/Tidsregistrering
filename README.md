@@ -23,7 +23,7 @@ Install the .NET 10 SDK with the Android workload. Restore once, then run these 
 
 ```powershell
 dotnet restore .\Tidsregistrering\Tidsregistrering.slnx
-dotnet build .\Tidsregistrering\Tidsregistrering.slnx --no-restore
+dotnet build .\Tidsregistrering\Tidsregistrering.slnx --no-restore -m:1
 dotnet test .\Tidsregistrering.Tests\Tidsregistrering.Tests.csproj --no-restore
 dotnet format .\Tidsregistrering\Tidsregistrering.slnx whitespace --verify-no-changes --no-restore
 ```

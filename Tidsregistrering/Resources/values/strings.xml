@@ -14,6 +14,7 @@
     <string name="exercise_name">Träningsnamn</string>
     <string name="exercise_time">Tid (t.ex. 18:00)</string>
     <string name="invalid_exercise">Ange namn och giltig tid.</string>
+    <string name="duplicate_exercise">En trÃ¤ning med samma namn, tid och veckodag finns redan.</string>
     <string name="no_exercises">Inga träningar ännu. Öppna Administrera för att lägga till en.</string>
     <string name="add_participant">Lägg till deltagare</string>
     <string name="remove_participant">Ta bort deltagare</string>
