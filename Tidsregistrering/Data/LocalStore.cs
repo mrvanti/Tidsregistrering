@@ -27,7 +27,7 @@ public sealed class LocalStore
 
         try
         {
-            return JsonSerializer.Deserialize(json, AppJsonContext.Default.AppData) ?? new AppData();
+            return AppDataMigration.Migrate(JsonSerializer.Deserialize(json, AppJsonContext.Default.AppData) ?? new AppData());
         }
         catch (JsonException)
         {
@@ -37,6 +37,7 @@ public sealed class LocalStore
 
     public void Save(AppData data)
     {
+        data = AppDataMigration.Migrate(data);
         var json = JsonSerializer.Serialize(data, AppJsonContext.Default.AppData);
         if (!preferences.Edit()!.PutString(DataKey, json)!.Commit())
         {

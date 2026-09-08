@@ -12,21 +12,21 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 0.1 Select the application stack
 
-- [ ] Choose the Android language, UI toolkit, build system, local persistence solution, CSV library, and file-sharing/export approach.
-- [ ] Record the choices and supported Android version range in `README.md`.
-- [ ] Create the minimal buildable Android project and verify a clean build on the target toolchain.
+- [x] Choose the Android language, UI toolkit, build system, local persistence solution, CSV library, and file-sharing/export approach.
+- [x] Record the choices and supported Android version range in `README.md`.
+- [x] Create the minimal buildable Android project and verify a clean build on the target toolchain.
 
 ### 0.2 Define product data and terminology
 
-- [ ] Define models for `Exercise`, `Participant`, `AttendanceSession`, `AttendanceEntry`, and an export/grouping result.
-- [ ] Define identifiers, required fields, timestamps, and deletion/retention behavior.
-- [ ] Resolve the session-date workflow and update `ASSUMPTIONS.md`/requirements documentation with the decision.
-- [ ] Specify which participant fields appear in the attendance list: first name, surname, and `YYMMDD` derived from the personal number.
+- [x] Define models for `Exercise`, `Participant`, `AttendanceSession`, `AttendanceEntry`, and an export/grouping result.
+- [x] Define identifiers, required fields, timestamps, and deletion/retention behavior.
+- [x] Resolve the session-date workflow and update `ASSUMPTIONS.md`/requirements documentation with the decision.
+- [x] Specify which participant fields appear in the attendance list: first name, surname, and `YYMMDD` derived from the personal number.
 
 ### 0.3 Establish quality baseline
 
-- [ ] Configure formatting, linting, unit tests, and a repeatable build command.
-- [ ] Add a short developer setup and test guide.
+- [x] Configure formatting, linting, unit tests, and a repeatable build command.
+- [x] Add a short developer setup and test guide.
 - [x] Ensure no network permission or network-dependent functionality is introduced.
 
 ## 1. Local data layer
@@ -35,8 +35,8 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 1.1 Persistent storage schema
 
-- [ ] Implement persistent local storage for all core models.
-- [ ] Add schema creation and safe migration/versioning rules.
+- [x] Implement persistent local storage for all core models.
+- [x] Add schema creation and safe migration/versioning rules.
 - [ ] Verify data survives app restart and device process recreation.
 
 ### 1.2 Exercise repository

@@ -1,17 +1,27 @@
 <resources>
     <string name="app_name">Tidsregistrering</string>
     <string name="admin">Administrera</string>
+    <string name="select_session_date">Välj träningsdatum</string>
     <string name="admin_pin_title">Administratörs-PIN</string>
     <string name="cancel">Avbryt</string>
     <string name="continue_label">Fortsätt</string>
     <string name="save">Spara</string>
     <string name="wrong_pin">Fel PIN-kod.</string>
+    <string name="admin_mode">Administratörsläge aktivt</string>
+    <string name="admin_enabled">Administratörsläge aktiverat.</string>
+    <string name="admin_expired">Administratörsläge avslutat efter inaktivitet.</string>
     <string name="add_exercise">Lägg till träning</string>
     <string name="exercise_name">Träningsnamn</string>
     <string name="exercise_time">Tid (t.ex. 18:00)</string>
     <string name="invalid_exercise">Ange namn och giltig tid.</string>
     <string name="no_exercises">Inga träningar ännu. Öppna Administrera för att lägga till en.</string>
     <string name="add_participant">Lägg till deltagare</string>
+    <string name="remove_participant">Ta bort deltagare</string>
+    <string name="cancel_removal">Avbryt borttagning</string>
+    <string name="remove">Ta bort</string>
+    <string name="select_participant_to_remove">Välj deltagare att ta bort.</string>
+    <string name="removal_cancelled">Borttagning avbruten.</string>
+    <string name="remove_participant_confirmation">Ta bort %1$s %2$s från %3$s? Tidigare närvaro sparas för export.</string>
     <string name="absent">Ej närvarande</string>
     <string name="present">Närvarande</string>
     <string name="first_name">Förnamn</string>

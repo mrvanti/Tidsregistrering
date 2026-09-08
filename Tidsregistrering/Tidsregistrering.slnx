@@ -2,4 +2,5 @@
   <Project Path="Tidsregistrering.csproj">
     <Deploy />
   </Project>
+  <Project Path="..\Tidsregistrering.Tests\Tidsregistrering.Tests.csproj" />
 </Solution>

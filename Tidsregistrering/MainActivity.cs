@@ -1,5 +1,6 @@
 using Android.App;
 using Android.OS;
+using Android.Views;
 using Android.Widget;
 using Tidsregistrering.Data;
 using Tidsregistrering.Models;
@@ -9,7 +10,6 @@ namespace Tidsregistrering;
 [Activity(Label = "@string/app_name", MainLauncher = true)]
 public class MainActivity : Activity
 {
-    private readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
     private AppData data = new();
     private LocalStore store = null!;
     private Spinner exercisePicker = null!;
@@ -17,9 +17,19 @@ public class MainActivity : Activity
     private ListView presentList = null!;
     private TextView emptyState = null!;
     private Button addParticipantButton = null!;
+    private LinearLayout adminActions = null!;
+    private TextView adminStatus = null!;
+    private Button removeParticipantButton = null!;
     private List<Exercise> shownExercises = [];
     private List<Participant> shownAbsent = [];
     private List<Participant> shownPresent = [];
+    private Timer? adminExpiryTimer;
+    private bool adminMode;
+    private bool removingParticipant;
+
+    private DateOnly selectedDate = DateOnly.FromDateTime(DateTime.Today);
+
+    private DateOnly CurrentDate => selectedDate;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -33,15 +43,40 @@ public class MainActivity : Activity
         presentList = FindViewById<ListView>(Resource.Id.present_list)!;
         emptyState = FindViewById<TextView>(Resource.Id.empty_state)!;
         addParticipantButton = FindViewById<Button>(Resource.Id.add_participant_button)!;
+        adminActions = FindViewById<LinearLayout>(Resource.Id.admin_actions)!;
+        adminStatus = FindViewById<TextView>(Resource.Id.admin_status)!;
+        removeParticipantButton = FindViewById<Button>(Resource.Id.remove_participant_button)!;
 
-        FindViewById<TextView>(Resource.Id.session_date)!.Text = today.ToString("dddd d MMMM", new System.Globalization.CultureInfo("sv-SE"));
+        UpdateSessionDate();
+        FindViewById<Button>(Resource.Id.session_date)!.Click += (_, _) => ShowDatePicker();
         FindViewById<Button>(Resource.Id.admin_button)!.Click += (_, _) => ShowPinDialog();
+        FindViewById<Button>(Resource.Id.add_exercise_button)!.Click += (_, _) =>
+        {
+            if (adminMode) ShowAddExerciseDialog();
+        };
+        removeParticipantButton.Click += (_, _) => ToggleParticipantRemoval();
         addParticipantButton.Click += (_, _) => ShowAddParticipantDialog();
         exercisePicker.ItemSelected += (_, _) => RefreshAttendance();
-        absentList.ItemClick += (_, eventArgs) => SetAttendance(eventArgs.Position, false, true);
-        presentList.ItemClick += (_, eventArgs) => SetAttendance(eventArgs.Position, true, false);
+        absentList.ItemClick += (_, eventArgs) => HandleParticipantClick(eventArgs.Position, false);
+        presentList.ItemClick += (_, eventArgs) => HandleParticipantClick(eventArgs.Position, true);
 
         RefreshExercises();
+    }
+
+    public override bool DispatchTouchEvent(MotionEvent? ev)
+    {
+        if (adminMode && ev?.Action == MotionEventActions.Up)
+        {
+            ResetAdminExpiry();
+        }
+
+        return base.DispatchTouchEvent(ev);
+    }
+
+    protected override void OnDestroy()
+    {
+        adminExpiryTimer?.Dispose();
+        base.OnDestroy();
     }
 
     private Exercise? SelectedExercise => exercisePicker.SelectedItemPosition >= 0 && exercisePicker.SelectedItemPosition < shownExercises.Count
@@ -53,10 +88,34 @@ public class MainActivity : Activity
         .ThenBy(exercise => exercise.SwedishWeekdayOrder)
         .ThenBy(exercise => exercise.Name, StringComparer.CurrentCultureIgnoreCase);
 
+    private void UpdateSessionDate() => FindViewById<TextView>(Resource.Id.session_date)!.Text =
+        CurrentDate.ToString("dddd d MMMM", new System.Globalization.CultureInfo("sv-SE"));
+
+    private void ShowDatePicker()
+    {
+        var dialog = new DatePickerDialog(
+            this,
+            (_, eventArgs) =>
+            {
+                selectedDate = new DateOnly(eventArgs.Year, eventArgs.Month + 1, eventArgs.DayOfMonth);
+                RefreshAttendance();
+            },
+            CurrentDate.Year,
+            CurrentDate.Month,
+            CurrentDate.Day);
+        dialog.Show();
+    }
+
+    private string ExerciseLabel(Exercise exercise)
+    {
+        var weekdayIndex = exercise.Weekday == DayOfWeek.Sunday ? 6 : (int)exercise.Weekday - 1;
+        return $"{Resources!.GetStringArray(Resource.Array.weekdays)![weekdayIndex]} {exercise.Time} – {exercise.Name}";
+    }
+
     private void RefreshExercises(Guid? selectedId = null)
     {
         shownExercises = SortedExercises().ToList();
-        exercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(exercise => exercise.ToString()).ToList());
+        exercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
         var position = selectedId is null ? 0 : shownExercises.FindIndex(exercise => exercise.Id == selectedId);
         if (position >= 0)
         {
@@ -68,6 +127,7 @@ public class MainActivity : Activity
 
     private void RefreshAttendance()
     {
+        UpdateSessionDate();
         var exercise = SelectedExercise;
         if (exercise is null)
         {
@@ -83,11 +143,12 @@ public class MainActivity : Activity
 
         var participants = data.Participants
             .Where(participant => participant.ExerciseId == exercise.Id)
+            .Where(participant => !participant.IsArchived)
             .OrderBy(participant => participant.Surname, StringComparer.CurrentCultureIgnoreCase)
             .ThenBy(participant => participant.FirstName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
         var presentIds = data.AttendanceEntries
-            .Where(entry => entry.ExerciseId == exercise.Id && entry.Date == today && entry.IsPresent)
+            .Where(entry => entry.ExerciseId == exercise.Id && entry.Date == CurrentDate && entry.IsPresent)
             .Select(entry => entry.ParticipantId)
             .ToHashSet();
 
@@ -108,7 +169,7 @@ public class MainActivity : Activity
             {
                 if (input.Text == "1234")
                 {
-                    ShowAddExerciseDialog();
+                    EnableAdminMode();
                 }
                 else
                 {
@@ -116,6 +177,96 @@ public class MainActivity : Activity
                 }
             });
         dialog.Show();
+    }
+
+    private void EnableAdminMode()
+    {
+        adminMode = true;
+        adminActions.Visibility = ViewStates.Visible;
+        adminStatus.Visibility = ViewStates.Visible;
+        ResetAdminExpiry();
+        Toast.MakeText(this, Resource.String.admin_enabled, ToastLength.Short)!.Show();
+    }
+
+    private void ResetAdminExpiry()
+    {
+        adminExpiryTimer?.Dispose();
+        adminExpiryTimer = new Timer(_ => RunOnUiThread(DisableAdminMode), null, TimeSpan.FromMinutes(3), Timeout.InfiniteTimeSpan);
+    }
+
+    private void DisableAdminMode()
+    {
+        if (!adminMode) return;
+
+        adminMode = false;
+        adminActions.Visibility = ViewStates.Gone;
+        adminStatus.Visibility = ViewStates.Gone;
+        removingParticipant = false;
+        removeParticipantButton.SetText(Resource.String.remove_participant);
+        adminExpiryTimer?.Dispose();
+        adminExpiryTimer = null;
+        Toast.MakeText(this, Resource.String.admin_expired, ToastLength.Short)!.Show();
+    }
+
+    private void ToggleParticipantRemoval()
+    {
+        if (!adminMode) return;
+
+        removingParticipant = !removingParticipant;
+        removeParticipantButton.SetText(removingParticipant ? Resource.String.cancel_removal : Resource.String.remove_participant);
+        Toast.MakeText(this, removingParticipant ? Resource.String.select_participant_to_remove : Resource.String.removal_cancelled, ToastLength.Short)!.Show();
+    }
+
+    private void HandleParticipantClick(int position, bool fromPresent)
+    {
+        if (removingParticipant)
+        {
+            ShowRemoveParticipantDialog(position, fromPresent);
+            return;
+        }
+
+        SetAttendance(position, fromPresent, !fromPresent);
+    }
+
+    private void ShowRemoveParticipantDialog(int position, bool fromPresent)
+    {
+        var participants = fromPresent ? shownPresent : shownAbsent;
+        if (position < 0 || position >= participants.Count || SelectedExercise is not Exercise exercise) return;
+        var participant = participants[position];
+        var message = string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            GetString(Resource.String.remove_participant_confirmation),
+            participant.FirstName,
+            participant.Surname,
+            exercise.Name);
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.remove_participant);
+        dialog.SetMessage(message);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.remove, (_, _) => ArchiveParticipant(participant, exercise));
+        dialog.Show();
+    }
+
+    private void ArchiveParticipant(Participant participant, Exercise exercise)
+    {
+        var index = data.Participants.FindIndex(candidate => candidate.Id == participant.Id);
+        if (index < 0) return;
+
+        data.Participants[index] = new Participant
+        {
+            Id = participant.Id,
+            ExerciseId = participant.ExerciseId,
+            CreatedAtUtc = participant.CreatedAtUtc,
+            ArchivedAtUtc = DateTimeOffset.UtcNow,
+            FirstName = participant.FirstName,
+            Surname = participant.Surname,
+            PersonalNumber = participant.PersonalNumber,
+            IsTrainer = participant.IsTrainer,
+            IsArchived = true
+        };
+        removingParticipant = false;
+        removeParticipantButton.SetText(Resource.String.remove_participant);
+        SaveAndRefresh(exercise.Id);
     }
 
     private void ShowAddExerciseDialog()
@@ -187,8 +338,15 @@ public class MainActivity : Activity
         if (position < 0 || position >= participants.Count || SelectedExercise is not Exercise exercise) return;
         var participant = participants[position];
 
-        data.AttendanceEntries.RemoveAll(entry => entry.ExerciseId == exercise.Id && entry.ParticipantId == participant.Id && entry.Date == today);
-        data.AttendanceEntries.Add(new AttendanceEntry { ExerciseId = exercise.Id, ParticipantId = participant.Id, Date = today, IsPresent = present });
+        var session = data.AttendanceSessions.FirstOrDefault(candidate => candidate.ExerciseId == exercise.Id && candidate.Date == CurrentDate);
+        if (session is null)
+        {
+            session = new AttendanceSession { ExerciseId = exercise.Id, Date = CurrentDate };
+            data.AttendanceSessions.Add(session);
+        }
+
+        data.AttendanceEntries.RemoveAll(entry => entry.ExerciseId == exercise.Id && entry.ParticipantId == participant.Id && entry.Date == CurrentDate);
+        data.AttendanceEntries.Add(new AttendanceEntry { SessionId = session.Id, ExerciseId = exercise.Id, ParticipantId = participant.Id, Date = CurrentDate, IsPresent = present });
         SaveAndRefresh(exercise.Id);
     }
 
