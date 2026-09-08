@@ -9,6 +9,7 @@ public sealed class LocalStore
 {
     private const string PreferencesName = "tidsregistrering";
     private const string DataKey = "app_data";
+    private const string SelectedExerciseKey = "selected_exercise_id";
     private readonly ISharedPreferences preferences;
 
     public LocalStore(Context context)
@@ -42,6 +43,30 @@ public sealed class LocalStore
         if (!preferences.Edit()!.PutString(DataKey, json)!.Commit())
         {
             throw new InvalidOperationException("Could not save local app data.");
+        }
+    }
+
+    public Guid? LoadSelectedExerciseId()
+    {
+        var value = preferences.GetString(SelectedExerciseKey, null);
+        return Guid.TryParse(value, out var id) ? id : null;
+    }
+
+    public void SaveSelectedExerciseId(Guid? id)
+    {
+        var editor = preferences.Edit()!;
+        if (id is null)
+        {
+            editor.Remove(SelectedExerciseKey);
+        }
+        else
+        {
+            editor.PutString(SelectedExerciseKey, id.Value.ToString());
+        }
+
+        if (!editor.Commit())
+        {
+            throw new InvalidOperationException("Could not save selected exercise.");
         }
     }
 }

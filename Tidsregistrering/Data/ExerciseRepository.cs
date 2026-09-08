@@ -28,5 +28,19 @@ public sealed class ExerciseRepository(AppData data)
         return true;
     }
 
-    public bool Delete(Guid id) => data.Exercises.RemoveAll(exercise => exercise.Id == id) > 0;
+    public int CountAttendance(Guid id) => data.AttendanceEntries.Count(entry => entry.ExerciseId == id);
+
+    /// <summary>Removes an exercise and all records owned exclusively by it.</summary>
+    public bool Delete(Guid id)
+    {
+        if (data.Exercises.RemoveAll(exercise => exercise.Id == id) == 0)
+        {
+            return false;
+        }
+
+        data.Participants.RemoveAll(participant => participant.ExerciseId == id);
+        data.AttendanceEntries.RemoveAll(entry => entry.ExerciseId == id);
+        data.AttendanceSessions.RemoveAll(session => session.ExerciseId == id);
+        return true;
+    }
 }

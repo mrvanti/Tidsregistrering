@@ -69,16 +69,16 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 2.1 Exercise selection and context
 
-- [ ] Display a sorted exercise picker.
-- [ ] Update the screen header with the selected exercise's weekday/time/name context.
-- [ ] Restore a sensible selected exercise after app restart and handle an empty exercise list.
+- [x] Display a sorted exercise picker.
+- [x] Update the screen header with the selected exercise's weekday/time/name context.
+- [x] Restore a sensible selected exercise after app restart and handle an empty exercise list.
 
 ### 2.2 Attendance list
 
-- [ ] Show absent and present participants as adjacent lists (or an equivalently clear two-state interaction).
-- [ ] Move a participant between states with an accessible tap action.
-- [ ] Display only first name, surname, and `YYMMDD` in each row.
-- [ ] Persist each change immediately and recover correctly after recreation.
+- [x] Show absent and present participants as adjacent lists (or an equivalently clear two-state interaction).
+- [x] Move a participant between states with an accessible tap action.
+- [x] Display only first name, surname, and `YYMMDD` in each row.
+- [x] Persist each change immediately and recover correctly after recreation.
 
 ### 2.3 Add participant flow
 
@@ -98,24 +98,24 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 3.1 Admin session
 
-- [ ] Add a PIN prompt with default PIN `1234`.
-- [ ] Keep the PIN implementation local and document how it can be changed.
-- [ ] Automatically end admin access after three minutes of inactivity.
-- [ ] Ensure normal attendance use remains available without admin access.
+- [x] Add a PIN prompt with default PIN `1234`.
+- [x] Keep the PIN implementation local and document how it can be changed.
+- [x] Automatically end admin access after three minutes of inactivity.
+- [x] Ensure normal attendance use remains available without admin access.
 
 ### 3.2 Participant removal
 
-- [ ] Expose a removal affordance only in admin mode.
-- [ ] Require confirmation that identifies the participant and active exercise.
-- [ ] Delete the exercise-owned participant according to the retention policy from 0.2.
+- [x] Expose a removal affordance only in admin mode.
+- [x] Require confirmation that identifies the participant and active exercise.
+- [x] Delete the exercise-owned participant according to the retention policy from 0.2.
 
 ### 3.3 Exercise administration
 
-- [ ] Add an exercise form with name, time, and weekday.
-- [ ] Validate required fields and make newly created exercises selectable immediately.
-- [ ] Add an exercise removal picker and confirmation.
-- [ ] Detect associated attendance and offer export before deletion.
-- [ ] Define the cancellation/error path so no exercise is removed before the user confirms.
+- [x] Add an exercise form with name, time, and weekday.
+- [x] Validate required fields and make newly created exercises selectable immediately.
+- [x] Add an exercise removal picker and confirmation.
+- [ ] Detect associated attendance and offer export before deletion. (Attendance is detected and deletion warns it is permanent; export action pending.)
+- [x] Define the cancellation/error path so no exercise is removed before the user confirms.
 
 ### 3.4 Admin verification
 

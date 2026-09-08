@@ -50,4 +50,27 @@ public sealed class ExerciseRepositoryTests
         Assert.AreEqual(second, repository.Get(second.Id));
         Assert.IsNull(repository.Get(first.Id));
     }
+
+    [TestMethod]
+    public void Delete_RemovesOnlyDataOwnedByDeletedExercise()
+    {
+        var first = new Exercise { Name = "First" };
+        var second = new Exercise { Name = "Second" };
+        var data = new AppData
+        {
+            Exercises = [first, second],
+            Participants = [new Participant { ExerciseId = first.Id }, new Participant { ExerciseId = second.Id }],
+            AttendanceSessions = [new AttendanceSession { ExerciseId = first.Id }, new AttendanceSession { ExerciseId = second.Id }],
+            AttendanceEntries = [new AttendanceEntry { ExerciseId = first.Id }, new AttendanceEntry { ExerciseId = second.Id }]
+        };
+
+        Assert.IsTrue(new ExerciseRepository(data).Delete(first.Id));
+
+        Assert.AreEqual(1, data.Participants.Count);
+        Assert.AreEqual(second.Id, data.Participants[0].ExerciseId);
+        Assert.AreEqual(1, data.AttendanceSessions.Count);
+        Assert.AreEqual(second.Id, data.AttendanceSessions[0].ExerciseId);
+        Assert.AreEqual(1, data.AttendanceEntries.Count);
+        Assert.AreEqual(second.Id, data.AttendanceEntries[0].ExerciseId);
+    }
 }

@@ -11,11 +11,15 @@
     <string name="admin_enabled">Administratörsläge aktiverat.</string>
     <string name="admin_expired">Administratörsläge avslutat efter inaktivitet.</string>
     <string name="add_exercise">Lägg till träning</string>
+    <string name="remove_exercise">Ta bort träning</string>
+    <string name="remove_exercise_confirmation">Ta bort %1$s och dess deltagarlista? Detta kan inte ångras.</string>
+    <string name="remove_exercise_with_attendance_confirmation">%1$s har %2$d närvaroposter. Exportera först när exportfunktionen är klar, eller bekräfta borttagning som raderar träning, deltagarlista och närvaro permanent.</string>
     <string name="exercise_name">Träningsnamn</string>
     <string name="exercise_time">Tid (t.ex. 18:00)</string>
     <string name="invalid_exercise">Ange namn och giltig tid.</string>
     <string name="duplicate_exercise">En trÃ¤ning med samma namn, tid och veckodag finns redan.</string>
     <string name="no_exercises">Inga träningar ännu. Öppna Administrera för att lägga till en.</string>
+    <string name="no_selected_exercise">Ingen träning vald</string>
     <string name="add_participant">Lägg till deltagare</string>
     <string name="remove_participant">Ta bort deltagare</string>
     <string name="cancel_removal">Avbryt borttagning</string>

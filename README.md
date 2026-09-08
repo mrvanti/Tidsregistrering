@@ -36,6 +36,6 @@ To confirm the repository remains free of network permissions, inspect `Tidsregi
 
 Default local administrator PIN: `1234`.
 
-It grants admin mode for three minutes of inactivity. The PIN is not yet configurable; that remains planned work.
+It grants admin mode for three minutes of inactivity. To change it for a local deployment, edit `DefaultAdminPin` in `Tidsregistrering/MainActivity.cs` and rebuild; it is never sent over a network.
 
 Attendance defaults to today. Select the displayed date to record or review another training session; the selection is not restored after restarting the app.

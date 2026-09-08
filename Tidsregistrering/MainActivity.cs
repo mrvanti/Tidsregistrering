@@ -10,6 +10,8 @@ namespace Tidsregistrering;
 [Activity(Label = "@string/app_name", MainLauncher = true)]
 public class MainActivity : Activity
 {
+    // Local-only deployment setting. Change this value and rebuild to use another PIN.
+    private const string DefaultAdminPin = "1234";
     private AppData data = new();
     private LocalStore store = null!;
     private ExerciseRepository exercises = null!;
@@ -19,16 +21,19 @@ public class MainActivity : Activity
     private ListView absentList = null!;
     private ListView presentList = null!;
     private TextView emptyState = null!;
+    private TextView exerciseContext = null!;
     private Button addParticipantButton = null!;
     private LinearLayout adminActions = null!;
     private TextView adminStatus = null!;
     private Button removeParticipantButton = null!;
+    private Button removeExerciseButton = null!;
     private List<Exercise> shownExercises = [];
     private List<Participant> shownAbsent = [];
     private List<Participant> shownPresent = [];
     private Timer? adminExpiryTimer;
     private bool adminMode;
     private bool removingParticipant;
+    private bool refreshingExercisePicker;
 
     private DateOnly selectedDate = DateOnly.FromDateTime(DateTime.Today);
 
@@ -48,10 +53,12 @@ public class MainActivity : Activity
         absentList = FindViewById<ListView>(Resource.Id.absent_list)!;
         presentList = FindViewById<ListView>(Resource.Id.present_list)!;
         emptyState = FindViewById<TextView>(Resource.Id.empty_state)!;
+        exerciseContext = FindViewById<TextView>(Resource.Id.exercise_context)!;
         addParticipantButton = FindViewById<Button>(Resource.Id.add_participant_button)!;
         adminActions = FindViewById<LinearLayout>(Resource.Id.admin_actions)!;
         adminStatus = FindViewById<TextView>(Resource.Id.admin_status)!;
         removeParticipantButton = FindViewById<Button>(Resource.Id.remove_participant_button)!;
+        removeExerciseButton = FindViewById<Button>(Resource.Id.remove_exercise_button)!;
 
         UpdateSessionDate();
         FindViewById<Button>(Resource.Id.session_date)!.Click += (_, _) => ShowDatePicker();
@@ -61,12 +68,19 @@ public class MainActivity : Activity
             if (adminMode) ShowAddExerciseDialog();
         };
         removeParticipantButton.Click += (_, _) => ToggleParticipantRemoval();
+        removeExerciseButton.Click += (_, _) => ShowRemoveExerciseDialog();
         addParticipantButton.Click += (_, _) => ShowAddParticipantDialog();
-        exercisePicker.ItemSelected += (_, _) => RefreshAttendance();
+        exercisePicker.ItemSelected += (_, _) =>
+        {
+            if (refreshingExercisePicker) return;
+
+            SaveSelectedExercise();
+            RefreshAttendance();
+        };
         absentList.ItemClick += (_, eventArgs) => HandleParticipantClick(eventArgs.Position, false);
         presentList.ItemClick += (_, eventArgs) => HandleParticipantClick(eventArgs.Position, true);
 
-        RefreshExercises();
+        RefreshExercises(store.LoadSelectedExerciseId());
     }
 
     public override bool DispatchTouchEvent(MotionEvent? ev)
@@ -116,13 +130,28 @@ public class MainActivity : Activity
     private void RefreshExercises(Guid? selectedId = null)
     {
         shownExercises = exercises.ListSorted().ToList();
-        exercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
-        var position = selectedId is null ? 0 : shownExercises.FindIndex(exercise => exercise.Id == selectedId);
-        if (position >= 0)
+        refreshingExercisePicker = true;
+        try
         {
-            exercisePicker.SetSelection(position);
+            exercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
+            var idToSelect = selectedId ?? store.LoadSelectedExerciseId();
+            var position = idToSelect is null ? 0 : shownExercises.FindIndex(exercise => exercise.Id == idToSelect);
+            if (position < 0 && shownExercises.Count > 0)
+            {
+                position = 0;
+            }
+
+            if (position >= 0)
+            {
+                exercisePicker.SetSelection(position);
+            }
+        }
+        finally
+        {
+            refreshingExercisePicker = false;
         }
 
+        SaveSelectedExercise();
         RefreshAttendance();
     }
 
@@ -132,6 +161,7 @@ public class MainActivity : Activity
         var exercise = SelectedExercise;
         if (exercise is null)
         {
+            exerciseContext.Text = GetString(Resource.String.no_selected_exercise);
             emptyState.Visibility = Android.Views.ViewStates.Visible;
             addParticipantButton.Enabled = false;
             absentList.Adapter = null;
@@ -140,6 +170,7 @@ public class MainActivity : Activity
         }
 
         emptyState.Visibility = Android.Views.ViewStates.Gone;
+        exerciseContext.Text = ExerciseLabel(exercise);
         addParticipantButton.Enabled = true;
 
         var exerciseParticipants = participants.ListForExercise(exercise.Id);
@@ -163,7 +194,7 @@ public class MainActivity : Activity
         dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
         dialog.SetPositiveButton(Resource.String.continue_label, (_, _) =>
             {
-                if (input.Text == "1234")
+                if (input.Text == DefaultAdminPin)
                 {
                     EnableAdminMode();
                 }
@@ -283,6 +314,49 @@ public class MainActivity : Activity
         dialog.Show();
     }
 
+    private void ShowRemoveExerciseDialog()
+    {
+        if (!adminMode || shownExercises.Count == 0) return;
+
+        var picker = new Spinner(this);
+        picker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
+        var current = SelectedExercise;
+        var position = current is null ? 0 : shownExercises.FindIndex(exercise => exercise.Id == current.Id);
+        picker.SetSelection(Math.Max(0, position));
+
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.remove_exercise);
+        dialog.SetView(picker);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.continue_label, (_, _) =>
+        {
+            if (picker.SelectedItemPosition < 0 || picker.SelectedItemPosition >= shownExercises.Count) return;
+            ShowRemoveExerciseConfirmation(shownExercises[picker.SelectedItemPosition]);
+        });
+        dialog.Show();
+    }
+
+    private void ShowRemoveExerciseConfirmation(Exercise exercise)
+    {
+        var attendanceCount = exercises.CountAttendance(exercise.Id);
+        var message = attendanceCount == 0
+            ? string.Format(GetString(Resource.String.remove_exercise_confirmation), ExerciseLabel(exercise))
+            : string.Format(GetString(Resource.String.remove_exercise_with_attendance_confirmation), ExerciseLabel(exercise), attendanceCount);
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.remove_exercise);
+        dialog.SetMessage(message);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.remove, (_, _) => RemoveExercise(exercise));
+        dialog.Show();
+    }
+
+    private void RemoveExercise(Exercise exercise)
+    {
+        if (!exercises.Delete(exercise.Id)) return;
+
+        SaveAndRefresh();
+    }
+
     private void ShowAddParticipantDialog()
     {
         var exercise = SelectedExercise;
@@ -335,6 +409,18 @@ public class MainActivity : Activity
         {
             store.Save(data);
             RefreshExercises(selectedId);
+        }
+        catch (InvalidOperationException)
+        {
+            Toast.MakeText(this, Resource.String.save_failed, ToastLength.Long)!.Show();
+        }
+    }
+
+    private void SaveSelectedExercise()
+    {
+        try
+        {
+            store.SaveSelectedExerciseId(SelectedExercise?.Id);
         }
         catch (InvalidOperationException)
         {
