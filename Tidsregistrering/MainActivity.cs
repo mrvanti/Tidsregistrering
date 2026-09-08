@@ -1,4 +1,5 @@
 using Android.App;
+using Android.Content;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
@@ -12,6 +13,7 @@ public class MainActivity : Activity
 {
     // Local-only deployment setting. Change this value and rebuild to use another PIN.
     private const string DefaultAdminPin = "1234";
+    private const int ExportRequestCode = 1001;
     private readonly AdminSession adminSession = new(DefaultAdminPin);
     private AppData data = new();
     private LocalStore store = null!;
@@ -28,6 +30,9 @@ public class MainActivity : Activity
     private TextView adminStatus = null!;
     private Button removeParticipantButton = null!;
     private Button removeExerciseButton = null!;
+    private Button exportButton = null!;
+    private Button exportAllButton = null!;
+    private Button clearAttendanceButton = null!;
     private List<Exercise> shownExercises = [];
     private List<Participant> shownAbsent = [];
     private List<Participant> shownPresent = [];
@@ -35,6 +40,8 @@ public class MainActivity : Activity
     private bool adminMode;
     private bool removingParticipant;
     private bool refreshingExercisePicker;
+    private string? pendingExportContent;
+    private bool attendanceExported;
 
     private DateOnly selectedDate = DateOnly.FromDateTime(DateTime.Today);
 
@@ -60,6 +67,9 @@ public class MainActivity : Activity
         adminStatus = FindViewById<TextView>(Resource.Id.admin_status)!;
         removeParticipantButton = FindViewById<Button>(Resource.Id.remove_participant_button)!;
         removeExerciseButton = FindViewById<Button>(Resource.Id.remove_exercise_button)!;
+        exportButton = FindViewById<Button>(Resource.Id.export_button)!;
+        exportAllButton = FindViewById<Button>(Resource.Id.export_all_button)!;
+        clearAttendanceButton = FindViewById<Button>(Resource.Id.clear_attendance_button)!;
 
         UpdateSessionDate();
         FindViewById<Button>(Resource.Id.session_date)!.Click += (_, _) => ShowDatePicker();
@@ -70,6 +80,9 @@ public class MainActivity : Activity
         };
         removeParticipantButton.Click += (_, _) => ToggleParticipantRemoval();
         removeExerciseButton.Click += (_, _) => ShowRemoveExerciseDialog();
+        exportButton.Click += (_, _) => ShowExportExerciseDialog();
+        exportAllButton.Click += (_, _) => StartGlobalCsvExport();
+        clearAttendanceButton.Click += (_, _) => ShowClearAttendanceDialog();
         addParticipantButton.Click += (_, _) => ShowAddParticipantDialog();
         exercisePicker.ItemSelected += (_, _) =>
         {
@@ -349,8 +362,121 @@ public class MainActivity : Activity
         dialog.SetTitle(Resource.String.remove_exercise);
         dialog.SetMessage(message);
         dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        if (attendanceCount > 0)
+        {
+            dialog.SetNeutralButton(Resource.String.export, (_, _) => StartCsvExport(exercise));
+        }
+
         dialog.SetPositiveButton(Resource.String.remove, (_, _) => RemoveExercise(exercise));
         dialog.Show();
+    }
+
+    private void ShowExportExerciseDialog()
+    {
+        if (!adminMode || shownExercises.Count == 0) return;
+
+        var picker = new Spinner(this);
+        picker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
+        var position = SelectedExercise is { } selected ? shownExercises.FindIndex(exercise => exercise.Id == selected.Id) : 0;
+        picker.SetSelection(Math.Max(0, position));
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.export);
+        dialog.SetMessage(Resource.String.export_range_description);
+        dialog.SetView(picker);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.export, (_, _) =>
+        {
+            if (picker.SelectedItemPosition >= 0 && picker.SelectedItemPosition < shownExercises.Count)
+            {
+                StartCsvExport(shownExercises[picker.SelectedItemPosition]);
+            }
+        });
+        dialog.Show();
+    }
+
+    private void StartCsvExport(Exercise exercise)
+    {
+        var entries = attendance.GetRawAttendance(exercise.Id, DateOnly.MinValue, DateOnly.MaxValue);
+        pendingExportContent = new AttendanceCsvExporter().BuildExerciseCsv(
+            exercise,
+            data.Participants.Where(participant => participant.ExerciseId == exercise.Id),
+            entries);
+        var intent = new Intent(Intent.ActionCreateDocument);
+        intent.AddCategory(Intent.CategoryOpenable);
+        intent.SetType("text/csv");
+        intent.PutExtra(Intent.ExtraTitle, $"närvaro-{exercise.Id:N}.csv");
+        StartActivityForResult(intent, ExportRequestCode);
+    }
+
+    private void StartGlobalCsvExport()
+    {
+        if (!adminMode) return;
+
+        pendingExportContent = new AttendanceCsvExporter().BuildGlobalCsv(data.Exercises, data.Participants, data.AttendanceEntries);
+        var intent = new Intent(Intent.ActionCreateDocument);
+        intent.AddCategory(Intent.CategoryOpenable);
+        intent.SetType("text/csv");
+        intent.PutExtra(Intent.ExtraTitle, "närvaro-alla.csv");
+        StartActivityForResult(intent, ExportRequestCode);
+    }
+
+    private void ShowClearAttendanceDialog()
+    {
+        if (!adminMode) return;
+
+        if (!attendanceExported)
+        {
+            var exportDialog = new AlertDialog.Builder(this)!;
+            exportDialog.SetTitle(Resource.String.clear_attendance);
+            exportDialog.SetMessage(Resource.String.export_before_clear);
+            exportDialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+            exportDialog.SetPositiveButton(Resource.String.export_all, (_, _) => StartGlobalCsvExport());
+            exportDialog.Show();
+            return;
+        }
+
+        var clearDialog = new AlertDialog.Builder(this)!;
+        clearDialog.SetTitle(Resource.String.clear_attendance);
+        clearDialog.SetMessage(Resource.String.clear_attendance_confirmation);
+        clearDialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        clearDialog.SetPositiveButton(Resource.String.clear_attendance, (_, _) => ClearAttendance());
+        clearDialog.Show();
+    }
+
+    private void ClearAttendance()
+    {
+        attendance.ClearAll();
+        attendanceExported = false;
+        SaveAndRefresh();
+    }
+
+    protected override void OnActivityResult(int requestCode, Result resultCode, Intent? resultData)
+    {
+        base.OnActivityResult(requestCode, resultCode, resultData);
+        if (requestCode != ExportRequestCode) return;
+
+        try
+        {
+            if (resultCode != Result.Ok || resultData?.Data is null || pendingExportContent is null)
+            {
+                Toast.MakeText(this, Resource.String.export_cancelled, ToastLength.Short)!.Show();
+                return;
+            }
+
+            using var stream = ContentResolver!.OpenOutputStream(resultData.Data);
+            using var writer = new StreamWriter(stream ?? throw new InvalidOperationException("Could not open export file."), new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            writer.Write(pendingExportContent);
+            attendanceExported = true;
+            Toast.MakeText(this, Resource.String.export_succeeded, ToastLength.Long)!.Show();
+        }
+        catch (Exception)
+        {
+            Toast.MakeText(this, Resource.String.export_failed, ToastLength.Long)!.Show();
+        }
+        finally
+        {
+            pendingExportContent = null;
+        }
     }
 
     private void RemoveExercise(Exercise exercise)

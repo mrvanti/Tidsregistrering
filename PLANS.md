@@ -114,7 +114,7 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Add an exercise form with name, time, and weekday.
 - [x] Validate required fields and make newly created exercises selectable immediately.
 - [x] Add an exercise removal picker and confirmation.
-- [ ] Detect associated attendance and offer export before deletion. (Attendance is detected and deletion warns it is permanent; export action pending.)
+- [x] Detect associated attendance and offer export before deletion.
 - [x] Define the cancellation/error path so no exercise is removed before the user confirms.
 
 ### 3.4 Admin verification
@@ -157,10 +157,10 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 4.5 Global export and clear
 
-- [ ] Export all attendance records globally.
-- [ ] Require explicit confirmation before clearing attendance.
-- [ ] Clear only attendance records after a successful export (or explicitly handle a user-approved clear without export if product policy permits it).
-- [ ] Verify exercises and participant rosters remain intact after the clear.
+- [x] Export all attendance records globally.
+- [x] Require explicit confirmation before clearing attendance.
+- [x] Clear only attendance records after a successful export (or explicitly handle a user-approved clear without export if product policy permits it).
+- [x] Verify exercises and participant rosters remain intact after the clear.
 
 ## 5. Product hardening and release
 

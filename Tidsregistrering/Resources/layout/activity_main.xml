@@ -16,6 +16,9 @@
         <Button android:id="@+id/remove_participant_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/remove_participant" />
         <Button android:id="@+id/add_exercise_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/add_exercise" />
         <Button android:id="@+id/remove_exercise_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/remove_exercise" />
+        <Button android:id="@+id/export_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/export" />
+        <Button android:id="@+id/export_all_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/export_all" />
+        <Button android:id="@+id/clear_attendance_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/clear_attendance" />
     </LinearLayout>
     <TextView android:id="@+id/empty_state" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:gravity="center" android:text="@string/no_exercises" />
     <Button android:id="@+id/add_participant_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/add_participant" />

@@ -13,7 +13,16 @@
     <string name="add_exercise">Lägg till träning</string>
     <string name="remove_exercise">Ta bort träning</string>
     <string name="remove_exercise_confirmation">Ta bort %1$s och dess deltagarlista? Detta kan inte ångras.</string>
-    <string name="remove_exercise_with_attendance_confirmation">%1$s har %2$d närvaroposter. Exportera först när exportfunktionen är klar, eller bekräfta borttagning som raderar träning, deltagarlista och närvaro permanent.</string>
+    <string name="remove_exercise_with_attendance_confirmation">%1$s har %2$d närvaroposter. Exportera först, eller bekräfta borttagning som raderar träning, deltagarlista och närvaro permanent.</string>
+    <string name="export">Exportera</string>
+    <string name="export_range_description">Exporten innehåller alla registrerade datum för vald träning. Rå närvaro exporteras utan LOK-gruppering.</string>
+    <string name="export_succeeded">Exporten sparades.</string>
+    <string name="export_cancelled">Exporten avbröts.</string>
+    <string name="export_failed">Kunde inte spara exporten.</string>
+    <string name="export_all">Exportera alla</string>
+    <string name="clear_attendance">Rensa närvaro</string>
+    <string name="export_before_clear">Exportera alla närvaroposter innan de rensas.</string>
+    <string name="clear_attendance_confirmation">Rensa all närvaro? Träningar och deltagarlistor sparas.</string>
     <string name="exercise_name">Träningsnamn</string>
     <string name="exercise_time">Tid (t.ex. 18:00)</string>
     <string name="invalid_exercise">Ange namn och giltig tid.</string>
