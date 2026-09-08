@@ -41,6 +41,7 @@ public class MainActivity : Activity
     private bool removingParticipant;
     private bool refreshingExercisePicker;
     private string? pendingExportContent;
+    private bool pendingExportIsGlobal;
     private bool attendanceExported;
 
     private DateOnly selectedDate = DateOnly.FromDateTime(DateTime.Today);
@@ -401,6 +402,7 @@ public class MainActivity : Activity
             exercise,
             data.Participants.Where(participant => participant.ExerciseId == exercise.Id),
             entries);
+        pendingExportIsGlobal = false;
         var intent = new Intent(Intent.ActionCreateDocument);
         intent.AddCategory(Intent.CategoryOpenable);
         intent.SetType("text/csv");
@@ -413,6 +415,7 @@ public class MainActivity : Activity
         if (!adminMode) return;
 
         pendingExportContent = new AttendanceCsvExporter().BuildGlobalCsv(data.Exercises, data.Participants, data.AttendanceEntries);
+        pendingExportIsGlobal = true;
         var intent = new Intent(Intent.ActionCreateDocument);
         intent.AddCategory(Intent.CategoryOpenable);
         intent.SetType("text/csv");
@@ -466,7 +469,10 @@ public class MainActivity : Activity
             using var stream = ContentResolver!.OpenOutputStream(resultData.Data);
             using var writer = new StreamWriter(stream ?? throw new InvalidOperationException("Could not open export file."), new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
             writer.Write(pendingExportContent);
-            attendanceExported = true;
+            if (pendingExportIsGlobal)
+            {
+                attendanceExported = true;
+            }
             Toast.MakeText(this, Resource.String.export_succeeded, ToastLength.Long)!.Show();
         }
         catch (Exception)
@@ -476,6 +482,7 @@ public class MainActivity : Activity
         finally
         {
             pendingExportContent = null;
+            pendingExportIsGlobal = false;
         }
     }
 
@@ -529,6 +536,7 @@ public class MainActivity : Activity
         var participant = participants[position];
 
         attendance.SetAttendance(exercise.Id, participant.Id, CurrentDate, present);
+        attendanceExported = false;
         SaveAndRefresh(exercise.Id);
     }
 

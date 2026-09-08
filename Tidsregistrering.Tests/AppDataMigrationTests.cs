@@ -43,4 +43,22 @@ public sealed class AppDataMigrationTests
         Assert.AreEqual(0, migrated.AttendanceSessions.Count);
         Assert.AreEqual(0, migrated.AttendanceEntries.Count);
     }
+
+    [TestMethod]
+    public void Migrate_DeduplicatesLegacySessionsForSameExerciseAndDate()
+    {
+        var exerciseId = Guid.NewGuid();
+        var date = new DateOnly(2026, 9, 8);
+        var first = new AttendanceSession { ExerciseId = exerciseId, Date = date };
+        var data = new AppData
+        {
+            AttendanceSessions = [first, new AttendanceSession { ExerciseId = exerciseId, Date = date }],
+            AttendanceEntries = [new AttendanceEntry { ExerciseId = exerciseId, ParticipantId = Guid.NewGuid(), Date = date }]
+        };
+
+        var migrated = AppDataMigration.Migrate(data);
+
+        Assert.AreEqual(1, migrated.AttendanceSessions.Count);
+        Assert.AreEqual(first.Id, migrated.AttendanceEntries[0].SessionId);
+    }
 }

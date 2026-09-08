@@ -9,7 +9,8 @@
         <Button android:id="@+id/admin_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/admin" />
     </LinearLayout>
     <Button android:id="@+id/session_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:contentDescription="@string/select_session_date" android:textAppearance="@android:style/TextAppearance.Material.Medium" />
-    <Spinner android:id="@+id/exercise_picker" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" />
+    <TextView android:id="@+id/exercise_picker_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@id/exercise_picker" android:text="@string/select_exercise" />
+    <Spinner android:id="@+id/exercise_picker" android:layout_width="match_parent" android:layout_height="wrap_content" android:contentDescription="@string/select_exercise" />
     <TextView android:id="@+id/exercise_context" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textAppearance="@android:style/TextAppearance.Material.Medium" android:textStyle="bold" />
     <LinearLayout android:id="@+id/admin_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical" android:visibility="gone">
         <TextView android:id="@+id/admin_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_mode" android:visibility="gone" />
@@ -24,11 +25,11 @@
     <Button android:id="@+id/add_participant_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/add_participant" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp" android:orientation="horizontal">
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/absent" android:textStyle="bold" />
+            <TextView android:id="@+id/absent_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@id/absent_list" android:text="@string/absent" android:textStyle="bold" />
             <ListView android:id="@+id/absent_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/present" android:textStyle="bold" />
+            <TextView android:id="@+id/present_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@id/present_list" android:text="@string/present" android:textStyle="bold" />
             <ListView android:id="@+id/present_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
         </LinearLayout>
     </LinearLayout>

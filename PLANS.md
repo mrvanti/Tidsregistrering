@@ -180,9 +180,9 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 5.3 Release readiness
 
-- [ ] Run the complete automated suite and a clean release build.
+- [x] Run the complete automated suite and a clean release build.
 - [ ] Perform an offline-device acceptance pass covering the primary, admin, export, and clear flows.
-- [ ] Add a concise operator guide: default PIN, export location/sharing, and data-retention behavior.
+- [x] Add a concise operator guide: default PIN, export location/sharing, and data-retention behavior.
 
 ## Suggested work sequence
 

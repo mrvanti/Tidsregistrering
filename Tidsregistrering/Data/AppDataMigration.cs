@@ -10,12 +10,18 @@ internal static class AppDataMigration
     {
         var exercises = data.Exercises ?? [];
         var participants = data.Participants ?? [];
-        var existingSessions = data.AttendanceSessions ?? [];
-        var existingEntries = data.AttendanceEntries ?? [];
+        var existingSessions = (data.AttendanceSessions ?? []).OfType<AttendanceSession>();
+        var existingEntries = (data.AttendanceEntries ?? []).OfType<AttendanceEntry>();
+        var sessionsByKey = new Dictionary<(Guid ExerciseId, DateOnly Date), AttendanceSession>();
+        var sessions = new List<AttendanceSession>();
+        foreach (var session in existingSessions)
+        {
+            if (sessionsByKey.TryAdd((session.ExerciseId, session.Date), session))
+            {
+                sessions.Add(session);
+            }
+        }
 
-        var sessionsByKey = existingSessions
-            .ToDictionary(session => (session.ExerciseId, session.Date));
-        var sessions = existingSessions.ToList();
         var entries = existingEntries.Select(entry =>
         {
             if (!sessionsByKey.TryGetValue((entry.ExerciseId, entry.Date), out var session))

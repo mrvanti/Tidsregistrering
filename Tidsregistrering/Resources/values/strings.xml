@@ -2,6 +2,7 @@
     <string name="app_name">Tidsregistrering</string>
     <string name="admin">Administrera</string>
     <string name="select_session_date">Välj träningsdatum</string>
+    <string name="select_exercise">Välj träning</string>
     <string name="admin_pin_title">Administratörs-PIN</string>
     <string name="cancel">Avbryt</string>
     <string name="continue_label">Fortsätt</string>
