@@ -12,6 +12,7 @@ public class MainActivity : Activity
 {
     // Local-only deployment setting. Change this value and rebuild to use another PIN.
     private const string DefaultAdminPin = "1234";
+    private readonly AdminSession adminSession = new(DefaultAdminPin);
     private AppData data = new();
     private LocalStore store = null!;
     private ExerciseRepository exercises = null!;
@@ -194,7 +195,7 @@ public class MainActivity : Activity
         dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
         dialog.SetPositiveButton(Resource.String.continue_label, (_, _) =>
             {
-                if (input.Text == DefaultAdminPin)
+                if (adminSession.TrySignIn(input.Text ?? string.Empty))
                 {
                     EnableAdminMode();
                 }
@@ -217,6 +218,7 @@ public class MainActivity : Activity
 
     private void ResetAdminExpiry()
     {
+        adminSession.RecordActivity();
         adminExpiryTimer?.Dispose();
         adminExpiryTimer = new Timer(_ => RunOnUiThread(DisableAdminMode), null, TimeSpan.FromMinutes(3), Timeout.InfiniteTimeSpan);
     }
@@ -226,6 +228,7 @@ public class MainActivity : Activity
         if (!adminMode) return;
 
         adminMode = false;
+        adminSession.End();
         adminActions.Visibility = ViewStates.Gone;
         adminStatus.Visibility = ViewStates.Gone;
         removingParticipant = false;

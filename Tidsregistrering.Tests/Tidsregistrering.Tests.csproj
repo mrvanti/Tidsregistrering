@@ -16,5 +16,7 @@
     <Compile Include="..\Tidsregistrering\Data\ExerciseRepository.cs" Link="Data\ExerciseRepository.cs" />
     <Compile Include="..\Tidsregistrering\Data\ParticipantRepository.cs" Link="Data\ParticipantRepository.cs" />
     <Compile Include="..\Tidsregistrering\Data\AttendanceRepository.cs" Link="Data\AttendanceRepository.cs" />
+    <Compile Include="..\Tidsregistrering\Data\AdminSession.cs" Link="Data\AdminSession.cs" />
+    <Compile Include="..\Tidsregistrering\Data\LokGroupAllocationEngine.cs" Link="Data\LokGroupAllocationEngine.cs" />
   </ItemGroup>
 </Project>

@@ -82,14 +82,14 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 2.3 Add participant flow
 
-- [ ] Provide a discoverable “add participant” action in the active exercise context.
-- [ ] Collect first name, surname, personal number, and trainer status.
-- [ ] Add the participant to the active exercise only.
-- [ ] Show practical field errors; do not add personal-number validation beyond the stated requirement unless explicitly decided.
+- [x] Provide a discoverable “add participant” action in the active exercise context.
+- [x] Collect first name, surname, personal number, and trainer status.
+- [x] Add the participant to the active exercise only.
+- [x] Show practical field errors; do not add personal-number validation beyond the stated requirement unless explicitly decided.
 
 ### 2.4 Main-flow verification
 
-- [ ] Add UI/integration tests for selecting an exercise, adding a participant, and toggling attendance.
+- [x] Add UI/integration tests for selecting an exercise, adding a participant, and toggling attendance.
 - [ ] Manually check small and large participant lists on a representative Android device/emulator.
 
 ## 3. Admin access and controls
@@ -119,8 +119,8 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 3.4 Admin verification
 
-- [ ] Test incorrect/correct PIN, expiry after inactivity, and re-locking of controls.
-- [ ] Test participant and exercise removal, including exercises with attendance.
+- [x] Test incorrect/correct PIN, expiry after inactivity, and re-locking of controls.
+- [x] Test participant and exercise removal, including exercises with attendance.
 
 ## 4. LOK-stöd grouping and export
 
@@ -129,23 +129,23 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 ### 4.1 Eligibility and policy safeguards
 
 - [ ] Confirm the participant age/eligibility rules required for LOK-stöd; they are not specified in the current requirements.
-- [ ] Model any eligibility result separately from raw attendance so source data is never silently changed.
+- [x] Model any eligibility result separately from raw attendance so source data is never silently changed.
 - [ ] Show a clear warning that grouping may only represent genuinely separate eligible activities, never fictitious splits.
 
 ### 4.2 Group allocation engine
 
-- [ ] Implement the supplied policy: maximize groups with one leader and at least three eligible participants.
-- [ ] Distribute remaining participants across valid groups.
-- [ ] Place surplus leaders as second leaders only after no more valid groups can be formed.
-- [ ] Return no valid groups when there are insufficient leaders or eligible participants.
-- [ ] Keep unassigned attendees/leaders explicit in the result.
+- [x] Implement the supplied policy: maximize groups with one leader and at least three eligible participants.
+- [x] Distribute remaining participants across valid groups.
+- [x] Place surplus leaders as second leaders only after no more valid groups can be formed.
+- [x] Return no valid groups when there are insufficient leaders or eligible participants.
+- [x] Keep unassigned attendees/leaders explicit in the result.
 
 ### 4.3 Allocation-engine tests
 
-- [ ] Test the documented case: 2 leaders and 6 participants produces two groups of 1+3.
-- [ ] Test zero leaders, fewer than three eligible participants, surplus participants, and surplus leaders.
-- [ ] Test that a second leader is not assigned while a separate valid group can be formed.
-- [ ] Test deterministic results for stable exports.
+- [x] Test the documented case: 2 leaders and 6 participants produces two groups of 1+3.
+- [x] Test zero leaders, fewer than three eligible participants, surplus participants, and surplus leaders.
+- [x] Test that a second leader is not assigned while a separate valid group can be formed.
+- [x] Test deterministic results for stable exports.
 
 ### 4.4 Exercise export
 
