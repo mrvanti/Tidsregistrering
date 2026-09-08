@@ -15,7 +15,8 @@
     <string name="remove_exercise_confirmation">Ta bort %1$s och dess deltagarlista? Detta kan inte ångras.</string>
     <string name="remove_exercise_with_attendance_confirmation">%1$s har %2$d närvaroposter. Exportera först, eller bekräfta borttagning som raderar träning, deltagarlista och närvaro permanent.</string>
     <string name="export">Exportera</string>
-    <string name="export_range_description">Exporten innehåller alla registrerade datum för vald träning. Rå närvaro exporteras utan LOK-gruppering.</string>
+    <string name="export_range_description">Exporten innehåller alla registrerade datum för vald träning, rå närvaro och LOK-gruppering per datum. Ålderskontroll görs inte.</string>
+    <string name="lok_grouping_warning">LOK-grupper får bara motsvara verkligt separata, stödberättigade aktiviteter. Dela aldrig en aktivitet fiktivt.</string>
     <string name="export_succeeded">Exporten sparades.</string>
     <string name="export_cancelled">Exporten avbröts.</string>
     <string name="export_failed">Kunde inte spara exporten.</string>

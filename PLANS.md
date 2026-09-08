@@ -130,7 +130,7 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 - [ ] Confirm the participant age/eligibility rules required for LOK-stöd; they are not specified in the current requirements.
 - [x] Model any eligibility result separately from raw attendance so source data is never silently changed.
-- [ ] Show a clear warning that grouping may only represent genuinely separate eligible activities, never fictitious splits.
+- [x] Show a clear warning that grouping may only represent genuinely separate eligible activities, never fictitious splits.
 
 ### 4.2 Group allocation engine
 
@@ -149,11 +149,11 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 4.4 Exercise export
 
-- [ ] Build an admin-only export form using the same sorted exercise picker logic as the main screen.
-- [ ] Define the export date/session range and CSV column specification before implementation.
-- [ ] Export raw attendance plus a clearly identifiable grouping/allocation section or companion file.
-- [ ] Create the file locally and invoke Android's user-controlled sharing/save flow.
-- [ ] Report export success/failure without deleting any data.
+- [x] Build an admin-only export form using the same sorted exercise picker logic as the main screen.
+- [x] Define the export date/session range and CSV column specification before implementation.
+- [x] Export raw attendance plus a clearly identifiable grouping/allocation section or companion file.
+- [x] Create the file locally and invoke Android's user-controlled sharing/save flow.
+- [x] Report export success/failure without deleting any data.
 
 ### 4.5 Global export and clear
 

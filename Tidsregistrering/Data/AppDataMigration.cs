@@ -8,15 +8,15 @@ internal static class AppDataMigration
 
     internal static AppData Migrate(AppData data)
     {
-        if (data.SchemaVersion >= CurrentSchemaVersion)
-        {
-            return data;
-        }
+        var exercises = data.Exercises ?? [];
+        var participants = data.Participants ?? [];
+        var existingSessions = data.AttendanceSessions ?? [];
+        var existingEntries = data.AttendanceEntries ?? [];
 
-        var sessionsByKey = data.AttendanceSessions
+        var sessionsByKey = existingSessions
             .ToDictionary(session => (session.ExerciseId, session.Date));
-        var sessions = data.AttendanceSessions.ToList();
-        var entries = data.AttendanceEntries.Select(entry =>
+        var sessions = existingSessions.ToList();
+        var entries = existingEntries.Select(entry =>
         {
             if (!sessionsByKey.TryGetValue((entry.ExerciseId, entry.Date), out var session))
             {
@@ -41,9 +41,9 @@ internal static class AppDataMigration
 
         return new AppData
         {
-            SchemaVersion = CurrentSchemaVersion,
-            Exercises = data.Exercises,
-            Participants = data.Participants,
+            SchemaVersion = Math.Max(data.SchemaVersion, CurrentSchemaVersion),
+            Exercises = exercises,
+            Participants = participants,
             AttendanceSessions = sessions,
             AttendanceEntries = entries
         };

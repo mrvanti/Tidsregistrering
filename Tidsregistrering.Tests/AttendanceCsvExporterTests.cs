@@ -38,4 +38,18 @@ public sealed class AttendanceCsvExporterTests
         StringAssert.Contains(csv, "2026-09-08,First");
         StringAssert.Contains(csv, "2026-09-09,Second");
     }
+
+    [TestMethod]
+    public void BuildExerciseCsv_AddsPerSessionLokAllocationSection()
+    {
+        var exercise = new Exercise { Name = "Judo" };
+        var people = Enumerable.Range(0, 4).Select(index => new Participant { ExerciseId = exercise.Id, FirstName = $"P{index}", IsTrainer = index == 0 }).ToList();
+        var entries = people.Select(person => new AttendanceEntry { ExerciseId = exercise.Id, ParticipantId = person.Id, Date = new DateOnly(2026, 9, 8), IsPresent = true });
+
+        var csv = new AttendanceCsvExporter().BuildExerciseCsv(exercise, people, entries);
+
+        StringAssert.Contains(csv, "LOK-gruppering (endast verkligt separata aktiviteter)");
+        StringAssert.Contains(csv, "2026-09-08,1,Ledare,P0");
+        StringAssert.Contains(csv, "2026-09-08,1,Deltagare,P3");
+    }
 }

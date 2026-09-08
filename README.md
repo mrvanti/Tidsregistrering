@@ -7,12 +7,12 @@ Offline Android attendance app for judo training.
 - C# / .NET 10 Android (`net10.0-android`)
 - Android XML views; minimum API 24 (Android 7)
 - Local JSON data in Android `SharedPreferences`
-- Planned CSV export: in-app RFC 4180 writer through Android Storage Access Framework
+- CSV export: in-app RFC 4180 writer through Android Storage Access Framework
 
 ## Build
 
 ```powershell
-dotnet build .\Tidsregistrering\Tidsregistrering.slnx
+dotnet build .\Tidsregistrering\Tidsregistrering.slnx -m:1
 ```
 
 The installed preview .NET SDK may print a misleading `Build FAILED` footer even when it returns exit code `0` and produces the application DLL.
@@ -39,3 +39,10 @@ Default local administrator PIN: `1234`.
 It grants admin mode for three minutes of inactivity. To change it for a local deployment, edit `DefaultAdminPin` in `Tidsregistrering/MainActivity.cs` and rebuild; it is never sent over a network.
 
 Attendance defaults to today. Select the displayed date to record or review another training session; the selection is not restored after restarting the app.
+
+## Operator guide
+
+- `Exportera` saves raw attendance and a per-date LOK allocation section for one exercise. `Exportera alla` saves raw attendance for every exercise. Android asks where to save the CSV.
+- LOK allocation uses present trainers as leaders and other present attendees as participants; no age filtering is applied. Only use allocated groups for genuinely separate activities.
+- `Rensa närvaro` requires a successful export in the current app session and removes attendance only. Exercises and participant rosters remain.
+- Data is local app storage only. Export CSV files regularly to a backup location. Clearing app data or uninstalling removes local records.

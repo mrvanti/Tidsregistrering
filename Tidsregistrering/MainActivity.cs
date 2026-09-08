@@ -381,7 +381,7 @@ public class MainActivity : Activity
         picker.SetSelection(Math.Max(0, position));
         var dialog = new AlertDialog.Builder(this)!;
         dialog.SetTitle(Resource.String.export);
-        dialog.SetMessage(Resource.String.export_range_description);
+        dialog.SetMessage(GetString(Resource.String.export_range_description) + "\n\n" + GetString(Resource.String.lok_grouping_warning));
         dialog.SetView(picker);
         dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
         dialog.SetPositiveButton(Resource.String.export, (_, _) =>
