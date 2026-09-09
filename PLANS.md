@@ -89,6 +89,8 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Group each attendance state into conditional `Tränare` and `Deltagare` sublists with distinct translucent backgrounds.
 - [x] Use red and green backgrounds for the `Ej närvarande` and `Närvarande` state headers.
 - [x] Size visible attendance sublists to their content and use a less-transparent sublist header background.
+- [x] Show directional arrows in sublist headers and add a small top margin before each visible sublist.
+- [x] Remove the redundant sublist-header arrows.
 
 ### 2.3 Add participant flow
 
@@ -124,12 +126,16 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Open a dedicated participant-removal page from `Ta bort deltagare` and provide its removal content there.
 - [x] Provide an independent exercise picker on the participant-removal page.
 - [x] Format removal confirmations with the selected participant and exercise details.
+- [x] Add admin participant editing, including copying the edited participant into additional exercise rosters.
+- [x] Make participants globally unique by valid 12-digit personal number while retaining independent exercise memberships.
 
 ### 3.3 Exercise administration
 
 - [x] Add an exercise form with name, time, and weekday.
 - [x] Validate required fields and make newly created exercises selectable immediately.
 - [x] Add an exercise removal picker and confirmation.
+- [x] Add an admin flow to change an existing exercise's name, time, or weekday while preserving its attendance and participants.
+- [x] Support adding the same exercise name/time for several weekdays using weekday checkboxes.
 - [x] Detect associated attendance and offer export before deletion.
 - [x] Define the cancellation/error path so no exercise is removed before the user confirms.
 - [x] Provide a time picker when adding an exercise.
@@ -146,6 +152,10 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Add an explicit close-admin control that returns to the main attendance page.
 - [x] Add 5–10 px horizontal padding to the entire layout.
 - [x] Present “Ej närvarande” and “Närvarande” as clearly separated headers, with the present header right-aligned.
+- [x] Group administration controls by users, exercises, and export using accessible icon buttons.
+- [x] Keep all admin exercise pickers independent from the date-filtered user picker.
+- [x] Present Deltagare and Träningar controls as inline rows with larger add/edit/delete icons, and restore text export actions.
+- [x] Provide an admin add-participant form with multi-exercise membership checkboxes.
 
 ## 4. LOK-stöd grouping and export
 

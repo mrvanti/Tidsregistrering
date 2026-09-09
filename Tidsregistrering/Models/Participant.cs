@@ -1,8 +1,15 @@
+using System.Text.Json.Serialization;
+
 namespace Tidsregistrering.Models;
 
 public sealed class Participant
 {
     public Guid Id { get; init; } = Guid.NewGuid();
+    /// <summary>Active exercise memberships for this globally unique person.</summary>
+    public List<Guid> ExerciseIds { get; init; } = [];
+
+    /// <summary>Legacy schema-v1 roster owner. Read during migration, never written when empty.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid ExerciseId { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? ArchivedAtUtc { get; init; }

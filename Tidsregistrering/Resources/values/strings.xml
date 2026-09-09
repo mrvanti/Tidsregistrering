@@ -2,6 +2,8 @@
     <string name="app_name">Tidsregistrering</string>
     <string name="admin">Administrera</string>
     <string name="admin_page_title">Administrera</string>
+    <string name="admin_users">Deltagare</string>
+    <string name="admin_exercises">Träningar</string>
     <string name="change_pin">Byt PIN</string>
     <string name="close_admin">Stäng administrering</string>
     <string name="new_pin">Ny PIN</string>
@@ -15,10 +17,11 @@
     <string name="continue_label">Fortsätt</string>
     <string name="save">Spara</string>
     <string name="wrong_pin">Fel PIN-kod.</string>
-    <string name="admin_mode">Administratörsläge aktivt</string>
+    <string name="add_user">Lägg till användare</string>
     <string name="admin_enabled">Administratörsläge aktiverat.</string>
     <string name="admin_expired">Administratörsläge avslutat efter inaktivitet.</string>
     <string name="add_exercise">Lägg till träning</string>
+    <string name="change_exercise">Ändra träning</string>
     <string name="remove_exercise">Ta bort träning</string>
     <string name="remove_exercise_confirmation">Ta bort {0} och dess deltagarlista? Detta kan inte ångras.</string>
     <string name="remove_exercise_with_attendance_confirmation">{0} har {1} närvaroposter. Exportera först, eller bekräfta borttagning som raderar träning, deltagarlista och närvaro permanent.</string>
@@ -34,15 +37,20 @@
     <string name="clear_attendance_confirmation">Rensa all närvaro? Träningar och deltagarlistor sparas.</string>
     <string name="exercise_name">Träningsnamn</string>
     <string name="exercise_time">Tid (t.ex. 18:00)</string>
+    <string name="exercise_weekdays">Veckodagar</string>
+    <string name="select_weekday">VÃ¤lj minst en veckodag.</string>
     <string name="invalid_exercise">Ange namn och giltig tid.</string>
     <string name="duplicate_exercise">En trÃ¤ning med samma namn, tid och veckodag finns redan.</string>
     <string name="no_exercises">Inga träningar ännu. Öppna Administrera för att lägga till en.</string>
     <string name="no_selected_exercise">Ingen träning vald</string>
     <string name="add_participant">Lägg till deltagare</string>
     <string name="remove_participant">Ta bort deltagare</string>
+    <string name="change_participant">Ändra deltagare</string>
     <string name="cancel_removal">Avbryt borttagning</string>
     <string name="remove">Ta bort</string>
     <string name="select_participant_to_remove">Välj deltagare att ta bort.</string>
+    <string name="select_participant_to_change">Välj deltagare att ändra.</string>
+    <string name="add_participant_to_exercises">Lägg även till deltagaren på:</string>
     <string name="removal_cancelled">Borttagning avbruten.</string>
     <string name="remove_participant_confirmation">Ta bort {0} {1} från {2}? Tidigare närvaro sparas för export.</string>
     <string name="absent">Ej närvarande</string>
@@ -54,6 +62,7 @@
     <string name="trainers">Tränare</string>
     <string name="participants">Deltagare</string>
     <string name="required_participant_fields">Fyll i förnamn, efternamn och personnummer.</string>
+    <string name="duplicate_participant">En deltagare med samma personnummer finns redan.</string>
     <string name="save_failed">Kunde inte spara ändringen lokalt.</string>
     <string-array name="weekdays">
         <item>Måndag</item><item>Tisdag</item><item>Onsdag</item><item>Torsdag</item><item>Fredag</item><item>Lördag</item><item>Söndag</item>

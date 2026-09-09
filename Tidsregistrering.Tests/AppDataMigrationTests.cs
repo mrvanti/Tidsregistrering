@@ -61,4 +61,43 @@ public sealed class AppDataMigrationTests
         Assert.AreEqual(1, migrated.AttendanceSessions.Count);
         Assert.AreEqual(first.Id, migrated.AttendanceEntries[0].SessionId);
     }
+
+    [TestMethod]
+    public void Migrate_MergesLegacyRosterCopiesAndRemapsAttendanceToCanonicalPerson()
+    {
+        var firstExercise = Guid.NewGuid();
+        var secondExercise = Guid.NewGuid();
+        var first = new Participant { ExerciseId = firstExercise, FirstName = "Ada", PersonalNumber = "200101011234" };
+        var copy = new Participant { ExerciseId = secondExercise, FirstName = "Ada", PersonalNumber = "200101011234" };
+        var entry = new AttendanceEntry
+        {
+            ExerciseId = secondExercise,
+            ParticipantId = copy.Id,
+            Date = new DateOnly(2026, 9, 8),
+            IsPresent = true
+        };
+
+        var migrated = AppDataMigration.Migrate(new AppData { Participants = [first, copy], AttendanceEntries = [entry] });
+
+        Assert.AreEqual(1, migrated.Participants.Count);
+        CollectionAssert.AreEquivalent(new[] { firstExercise, secondExercise }, migrated.Participants[0].ExerciseIds);
+        Assert.AreEqual(migrated.Participants[0].Id, migrated.AttendanceEntries.Single().ParticipantId);
+    }
+
+    [TestMethod]
+    public void Migrate_DoesNotMergeBlankOrMalformedPersonalNumbers()
+    {
+        var migrated = AppDataMigration.Migrate(new AppData
+        {
+            Participants =
+            [
+                new Participant { ExerciseId = Guid.NewGuid(), PersonalNumber = "" },
+                new Participant { ExerciseId = Guid.NewGuid(), PersonalNumber = "" },
+                new Participant { ExerciseId = Guid.NewGuid(), PersonalNumber = "invalid" },
+                new Participant { ExerciseId = Guid.NewGuid(), PersonalNumber = "invalid" }
+            ]
+        });
+
+        Assert.AreEqual(4, migrated.Participants.Count);
+    }
 }

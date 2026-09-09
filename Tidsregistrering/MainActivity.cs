@@ -26,20 +26,23 @@ public class MainActivity : Activity
     private ListView presentTrainerList = null!;
     private ListView presentParticipantList = null!;
     private TextView emptyState = null!;
-    private TextView exerciseContext = null!;
     private Button addParticipantButton = null!;
     private LinearLayout adminActions = null!;
     private LinearLayout mainHeader = null!;
     private LinearLayout attendancePage = null!;
-    private TextView adminStatus = null!;
     private Button removeParticipantButton = null!;
+    private Button adminAddParticipantButton = null!;
+    private Button changeParticipantButton = null!;
     private Button removeExerciseButton = null!;
+    private Button changeExerciseButton = null!;
     private Button exportButton = null!;
     private Button exportAllButton = null!;
     private Button clearAttendanceButton = null!;
     private Button changePinButton = null!;
     private Button closeAdminButton = null!;
     private LinearLayout removalPage = null!;
+    private TextView participantPageTitle = null!;
+    private TextView participantPageHint = null!;
     private Spinner removalExercisePicker = null!;
     private ListView removalList = null!;
     private Button closeRemovalButton = null!;
@@ -60,6 +63,7 @@ public class MainActivity : Activity
     private bool removingParticipant;
     private bool refreshingExercisePicker;
     private bool refreshingRemovalExercisePicker;
+    private bool editingParticipantPage;
     private bool followsCurrentDate = true;
     private string? pendingExportContent;
     private bool pendingExportIsGlobal;
@@ -86,7 +90,6 @@ public class MainActivity : Activity
         presentTrainerList = FindViewById<ListView>(Resource.Id.present_trainer_list)!;
         presentParticipantList = FindViewById<ListView>(Resource.Id.present_participant_list)!;
         emptyState = FindViewById<TextView>(Resource.Id.empty_state)!;
-        exerciseContext = FindViewById<TextView>(Resource.Id.exercise_context)!;
         addParticipantButton = FindViewById<Button>(Resource.Id.add_participant_button)!;
         adminActions = FindViewById<LinearLayout>(Resource.Id.admin_actions)!;
         mainHeader = FindViewById<LinearLayout>(Resource.Id.main_header)!;
@@ -95,15 +98,19 @@ public class MainActivity : Activity
         absentParticipantSection = FindViewById<LinearLayout>(Resource.Id.absent_participant_section)!;
         presentTrainerSection = FindViewById<LinearLayout>(Resource.Id.present_trainer_section)!;
         presentParticipantSection = FindViewById<LinearLayout>(Resource.Id.present_participant_section)!;
-        adminStatus = FindViewById<TextView>(Resource.Id.admin_status)!;
         removeParticipantButton = FindViewById<Button>(Resource.Id.remove_participant_button)!;
+        adminAddParticipantButton = FindViewById<Button>(Resource.Id.admin_add_participant_button)!;
+        changeParticipantButton = FindViewById<Button>(Resource.Id.change_participant_button)!;
         removeExerciseButton = FindViewById<Button>(Resource.Id.remove_exercise_button)!;
+        changeExerciseButton = FindViewById<Button>(Resource.Id.change_exercise_button)!;
         exportButton = FindViewById<Button>(Resource.Id.export_button)!;
         exportAllButton = FindViewById<Button>(Resource.Id.export_all_button)!;
         clearAttendanceButton = FindViewById<Button>(Resource.Id.clear_attendance_button)!;
         changePinButton = FindViewById<Button>(Resource.Id.change_pin_button)!;
         closeAdminButton = FindViewById<Button>(Resource.Id.close_admin_button)!;
         removalPage = FindViewById<LinearLayout>(Resource.Id.removal_page)!;
+        participantPageTitle = FindViewById<TextView>(Resource.Id.participant_page_title)!;
+        participantPageHint = FindViewById<TextView>(Resource.Id.participant_page_hint)!;
         removalExercisePicker = FindViewById<Spinner>(Resource.Id.removal_exercise_picker)!;
         removalList = FindViewById<ListView>(Resource.Id.removal_list)!;
         closeRemovalButton = FindViewById<Button>(Resource.Id.close_removal_button)!;
@@ -116,14 +123,22 @@ public class MainActivity : Activity
             if (adminMode) ShowAddExerciseDialog();
         };
         removeParticipantButton.Click += (_, _) => ShowParticipantRemovalPage();
+        adminAddParticipantButton.Click += (_, _) => ShowAdminAddParticipantDialog();
+        changeParticipantButton.Click += (_, _) => ShowParticipantEditPage();
         removeExerciseButton.Click += (_, _) => ShowRemoveExerciseDialog();
+        changeExerciseButton.Click += (_, _) => ShowChangeExerciseDialog();
         exportButton.Click += (_, _) => ShowExportExerciseDialog();
         exportAllButton.Click += (_, _) => StartGlobalCsvExport();
         clearAttendanceButton.Click += (_, _) => ShowClearAttendanceDialog();
         changePinButton.Click += (_, _) => ShowChangePinDialog();
         closeAdminButton.Click += (_, _) => DisableAdminMode(showExpiry: false);
         closeRemovalButton.Click += (_, _) => CloseParticipantRemovalPage();
-        removalList.ItemClick += (_, eventArgs) => ShowRemoveParticipantDialog(shownRemovalParticipants[eventArgs.Position]);
+        removalList.ItemClick += (_, eventArgs) =>
+        {
+            var participant = shownRemovalParticipants[eventArgs.Position];
+            if (editingParticipantPage) ShowChangeParticipantDialog(participant);
+            else ShowRemoveParticipantDialog(participant);
+        };
         removalExercisePicker.ItemSelected += (_, _) =>
         {
             if (!refreshingRemovalExercisePicker) RefreshRemovalParticipants();
@@ -235,7 +250,6 @@ public class MainActivity : Activity
         var exercise = SelectedExercise;
         if (exercise is null)
         {
-            exerciseContext.Text = GetString(Resource.String.no_selected_exercise);
             emptyState.Visibility = data.Exercises.Count == 0 ? Android.Views.ViewStates.Visible : Android.Views.ViewStates.Gone;
             addParticipantButton.Visibility = Android.Views.ViewStates.Gone;
             SetSection(absentTrainerSection, absentTrainerList, []);
@@ -246,7 +260,6 @@ public class MainActivity : Activity
         }
 
         emptyState.Visibility = Android.Views.ViewStates.Gone;
-        exerciseContext.Text = ExerciseLabel(exercise);
         addParticipantButton.Visibility = Android.Views.ViewStates.Visible;
 
         var exerciseParticipants = participants.ListForExercise(exercise.Id);
@@ -294,7 +307,12 @@ public class MainActivity : Activity
 
     private void ShowPinDialog()
     {
-        var input = new EditText(this) { InputType = Android.Text.InputTypes.ClassNumber | Android.Text.InputTypes.NumberVariationPassword };
+        var input = new EditText(this)
+        {
+            InputType = Android.Text.InputTypes.ClassNumber | Android.Text.InputTypes.NumberVariationPassword,
+            ImeOptions = Android.Views.InputMethods.ImeAction.Done
+        };
+        input.SetSingleLine(true);
         var dialog = new AlertDialog.Builder(this)!;
         dialog.SetTitle(Resource.String.admin_pin_title);
         dialog.SetView(input);
@@ -310,7 +328,17 @@ public class MainActivity : Activity
                     Toast.MakeText(this, Resource.String.wrong_pin, ToastLength.Short)!.Show();
                 }
             });
-        dialog.Show();
+        var alert = dialog.Show();
+        input.EditorAction += (_, eventArgs) =>
+        {
+            if (eventArgs.ActionId != Android.Views.InputMethods.ImeAction.Done && eventArgs.Event?.KeyCode != Keycode.Enter) return;
+
+            if (alert?.GetButton((int)DialogButtonType.Positive) is Button confirmButton)
+            {
+                confirmButton.PerformClick();
+            }
+            eventArgs.Handled = true;
+        };
     }
 
     private void EnableAdminMode()
@@ -318,10 +346,8 @@ public class MainActivity : Activity
         adminMode = true;
         mainHeader.Visibility = ViewStates.Gone;
         exercisePicker.Visibility = ViewStates.Gone;
-        exerciseContext.Visibility = ViewStates.Gone;
         attendancePage.Visibility = ViewStates.Gone;
         adminActions.Visibility = ViewStates.Visible;
-        adminStatus.Visibility = ViewStates.Visible;
         ResetAdminExpiry();
         Toast.MakeText(this, Resource.String.admin_enabled, ToastLength.Short)!.Show();
     }
@@ -340,12 +366,10 @@ public class MainActivity : Activity
         adminMode = false;
         mainHeader.Visibility = ViewStates.Visible;
         exercisePicker.Visibility = ViewStates.Visible;
-        exerciseContext.Visibility = ViewStates.Visible;
         attendancePage.Visibility = ViewStates.Visible;
         removalPage.Visibility = ViewStates.Gone;
         adminSession.End();
         adminActions.Visibility = ViewStates.Gone;
-        adminStatus.Visibility = ViewStates.Gone;
         removingParticipant = false;
         removeParticipantButton.SetText(Resource.String.remove_participant);
         adminExpiryTimer?.Dispose();
@@ -405,20 +429,43 @@ public class MainActivity : Activity
     {
         if (!adminMode) return;
 
-        shownRemovalExercises = exercises.ListSorted().ToList();
-        refreshingRemovalExercisePicker = true;
-        try
+        editingParticipantPage = false;
+        participantPageTitle.SetText(Resource.String.remove_participant);
+        participantPageHint.SetText(Resource.String.select_participant_to_remove);
+        ShowParticipantPage();
+    }
+
+    private void ShowParticipantEditPage()
+    {
+        if (!adminMode) return;
+
+        editingParticipantPage = true;
+        participantPageTitle.SetText(Resource.String.change_participant);
+        participantPageHint.SetText(Resource.String.select_participant_to_change);
+        ShowParticipantPage();
+    }
+
+    private void ShowParticipantPage()
+    {
+        if (editingParticipantPage)
         {
-            var labels = new[] { GetString(Resource.String.select_exercise) }.Concat(shownRemovalExercises.Select(ExerciseLabel)).ToList();
-            removalExercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, labels);
-            var position = SelectedExercise is Exercise exercise
-                ? shownRemovalExercises.FindIndex(candidate => candidate.Id == exercise.Id) + 1
-                : 0;
-            removalExercisePicker.SetSelection(position);
+            removalExercisePicker.Visibility = ViewStates.Gone;
         }
-        finally
+        else
         {
-            refreshingRemovalExercisePicker = false;
+            removalExercisePicker.Visibility = ViewStates.Visible;
+            shownRemovalExercises = exercises.ListSorted().ToList();
+            refreshingRemovalExercisePicker = true;
+            try
+            {
+                var labels = new[] { GetString(Resource.String.select_exercise) }.Concat(shownRemovalExercises.Select(ExerciseLabel)).ToList();
+                removalExercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, labels);
+                removalExercisePicker.SetSelection(0);
+            }
+            finally
+            {
+                refreshingRemovalExercisePicker = false;
+            }
         }
 
         RefreshRemovalParticipants();
@@ -428,15 +475,18 @@ public class MainActivity : Activity
 
     private void RefreshRemovalParticipants()
     {
-        shownRemovalParticipants = SelectedRemovalExercise is Exercise exercise
-            ? participants.ListForExercise(exercise.Id).ToList()
-            : [];
+        shownRemovalParticipants = editingParticipantPage
+            ? participants.ListAll().ToList()
+            : SelectedRemovalExercise is Exercise exercise
+                ? participants.ListForExercise(exercise.Id).ToList()
+                : [];
         removalList.Adapter = new ParticipantListAdapter(this, shownRemovalParticipants);
     }
 
     private void CloseParticipantRemovalPage()
     {
         removalPage.Visibility = ViewStates.Gone;
+        editingParticipantPage = false;
         if (adminMode) adminActions.Visibility = ViewStates.Visible;
     }
 
@@ -492,11 +542,67 @@ public class MainActivity : Activity
 
     private void ArchiveParticipant(Participant participant, Exercise exercise)
     {
-        if (!participants.Archive(participant.Id)) return;
+        if (!participants.RemoveFromExercise(participant.Id, exercise.Id)) return;
         removingParticipant = false;
         removeParticipantButton.SetText(Resource.String.remove_participant);
         CloseParticipantRemovalPage();
         SaveAndRefresh();
+    }
+
+    private void ShowChangeParticipantDialog(Participant participant)
+    {
+        var form = LayoutInflater!.Inflate(Resource.Layout.dialog_participant, null)!;
+        var firstName = form.FindViewById<EditText>(Resource.Id.first_name)!;
+        var surname = form.FindViewById<EditText>(Resource.Id.surname)!;
+        var personalNumber = form.FindViewById<EditText>(Resource.Id.personal_number)!;
+        var trainer = form.FindViewById<CheckBox>(Resource.Id.trainer)!;
+        firstName.Text = participant.FirstName;
+        surname.Text = participant.Surname;
+        personalNumber.Text = participant.PersonalNumber;
+        trainer.Checked = participant.IsTrainer;
+
+        var availableExercises = exercises.ListSorted().ToList();
+        var exerciseCheckboxes = new Dictionary<Guid, CheckBox>();
+        if (form is LinearLayout container && availableExercises.Count > 0)
+        {
+            container.AddView(new TextView(this) { Text = GetString(Resource.String.add_participant_to_exercises) });
+            foreach (var exercise in availableExercises)
+            {
+                var checkBox = new CheckBox(this) { Text = ExerciseLabel(exercise), Checked = participants.IsMember(participant.Id, exercise.Id) };
+                exerciseCheckboxes.Add(exercise.Id, checkBox);
+                container.AddView(checkBox);
+            }
+        }
+
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.change_participant);
+        dialog.SetView(form);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.save, (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(firstName.Text) || string.IsNullOrWhiteSpace(surname.Text) || string.IsNullOrWhiteSpace(personalNumber.Text))
+            {
+                Toast.MakeText(this, Resource.String.required_participant_fields, ToastLength.Long)!.Show();
+                return;
+            }
+
+            var selectedExercises = exerciseCheckboxes.Where(pair => pair.Value.Checked).Select(pair => pair.Key).ToList();
+            if (selectedExercises.Count == 0)
+            {
+                Toast.MakeText(this, Resource.String.select_exercise, ToastLength.Long)!.Show();
+                return;
+            }
+
+            if (!participants.UpdateAndSetExercises(participant.Id, firstName.Text.Trim(), surname.Text.Trim(), personalNumber.Text.Trim(), trainer.Checked, selectedExercises))
+            {
+                Toast.MakeText(this, Resource.String.duplicate_participant, ToastLength.Long)!.Show();
+                return;
+            }
+
+            CloseParticipantRemovalPage();
+            SaveAndRefresh();
+        });
+        dialog.Show();
     }
 
     private void ShowAddExerciseDialog()
@@ -504,8 +610,7 @@ public class MainActivity : Activity
         var form = LayoutInflater!.Inflate(Resource.Layout.dialog_exercise, null)!;
         var name = form.FindViewById<EditText>(Resource.Id.exercise_name)!;
         var time = form.FindViewById<EditText>(Resource.Id.exercise_time)!;
-        var weekday = form.FindViewById<Spinner>(Resource.Id.weekday_picker)!;
-        weekday.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, Resources!.GetStringArray(Resource.Array.weekdays)!);
+        var weekdayCheckboxes = PopulateWeekdayCheckboxes(form);
         time.Click += (_, _) => ShowTimePicker(time);
 
         var dialog = new AlertDialog.Builder(this)!;
@@ -520,14 +625,20 @@ public class MainActivity : Activity
                     return;
                 }
 
-                var exercise = new Exercise { Name = name.Text.Trim(), Time = parsedTime.ToString("HH:mm"), Weekday = (DayOfWeek)weekday.SelectedItemPosition + 1 };
-                if (!exercises.TryAdd(exercise))
+                var selectedWeekdays = SelectedWeekdays(weekdayCheckboxes);
+                if (selectedWeekdays.Count == 0)
+                {
+                    Toast.MakeText(this, Resource.String.select_weekday, ToastLength.Long)!.Show();
+                    return;
+                }
+
+                if (!exercises.TryAddMany(name.Text.Trim(), parsedTime.ToString("HH:mm"), selectedWeekdays, out var exercise))
                 {
                     Toast.MakeText(this, Resource.String.duplicate_exercise, ToastLength.Long)!.Show();
                     return;
                 }
 
-                SaveAndRefresh(exercise.Id);
+                SaveAndRefresh(exercise!.Id);
             });
         dialog.Show();
     }
@@ -540,13 +651,13 @@ public class MainActivity : Activity
 
     private void ShowRemoveExerciseDialog()
     {
-        if (!adminMode || shownExercises.Count == 0) return;
+        if (!adminMode) return;
 
+        var editableExercises = exercises.ListSorted().ToList();
+        if (editableExercises.Count == 0) return;
         var picker = new Spinner(this);
-        picker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
-        var current = SelectedExercise;
-        var position = current is null ? 0 : shownExercises.FindIndex(exercise => exercise.Id == current.Id);
-        picker.SetSelection(Math.Max(0, position));
+        picker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, editableExercises.Select(ExerciseLabel).ToList());
+        picker.SetSelection(0);
 
         var dialog = new AlertDialog.Builder(this)!;
         dialog.SetTitle(Resource.String.remove_exercise);
@@ -554,11 +665,95 @@ public class MainActivity : Activity
         dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
         dialog.SetPositiveButton(Resource.String.continue_label, (_, _) =>
         {
-            if (picker.SelectedItemPosition < 0 || picker.SelectedItemPosition >= shownExercises.Count) return;
-            ShowRemoveExerciseConfirmation(shownExercises[picker.SelectedItemPosition]);
+            if (picker.SelectedItemPosition < 0 || picker.SelectedItemPosition >= editableExercises.Count) return;
+            ShowRemoveExerciseConfirmation(editableExercises[picker.SelectedItemPosition]);
         });
         dialog.Show();
     }
+
+    private void ShowChangeExerciseDialog()
+    {
+        if (!adminMode) return;
+
+        var editableExercises = exercises.ListSorted().ToList();
+        if (editableExercises.Count == 0) return;
+
+        var picker = new Spinner(this);
+        picker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, editableExercises.Select(ExerciseLabel).ToList());
+        picker.SetSelection(0);
+
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.change_exercise);
+        dialog.SetView(picker);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.continue_label, (_, _) =>
+        {
+            if (picker.SelectedItemPosition >= 0 && picker.SelectedItemPosition < editableExercises.Count)
+            {
+                ShowChangeExerciseForm(editableExercises[picker.SelectedItemPosition]);
+            }
+        });
+        dialog.Show();
+    }
+
+    private void ShowChangeExerciseForm(Exercise existing)
+    {
+        var form = LayoutInflater!.Inflate(Resource.Layout.dialog_exercise, null)!;
+        var name = form.FindViewById<EditText>(Resource.Id.exercise_name)!;
+        var time = form.FindViewById<EditText>(Resource.Id.exercise_time)!;
+        var weekdayCheckboxes = PopulateWeekdayCheckboxes(form, [existing.Weekday]);
+        name.Text = existing.Name;
+        time.Text = existing.Time;
+        time.Click += (_, _) => ShowTimePicker(time);
+
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.change_exercise);
+        dialog.SetView(form);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.save, (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(name.Text) || !TimeOnly.TryParse(time.Text, out var parsedTime))
+            {
+                Toast.MakeText(this, Resource.String.invalid_exercise, ToastLength.Long)!.Show();
+                return;
+            }
+
+            var selectedWeekdays = SelectedWeekdays(weekdayCheckboxes);
+            if (selectedWeekdays.Count == 0)
+            {
+                Toast.MakeText(this, Resource.String.select_weekday, ToastLength.Long)!.Show();
+                return;
+            }
+
+            if (!exercises.TryUpdateAndAddWeekdays(existing.Id, name.Text.Trim(), parsedTime.ToString("HH:mm"), selectedWeekdays, out var updated))
+            {
+                Toast.MakeText(this, Resource.String.duplicate_exercise, ToastLength.Long)!.Show();
+                return;
+            }
+
+            SaveAndRefresh(updated!.Id);
+        });
+        dialog.Show();
+    }
+
+    private LinearLayout PopulateWeekdayCheckboxes(View form, IReadOnlyCollection<DayOfWeek>? checkedWeekdays = null)
+    {
+        var container = form.FindViewById<LinearLayout>(Resource.Id.weekday_checkboxes)!;
+        var labels = Resources!.GetStringArray(Resource.Array.weekdays)!;
+        for (var index = 0; index < labels.Length; index++)
+        {
+            var weekday = (DayOfWeek)index + 1;
+            container.AddView(new CheckBox(this) { Text = labels[index], Checked = checkedWeekdays?.Contains(weekday) == true });
+        }
+
+        return container;
+    }
+
+    private static IReadOnlyList<DayOfWeek> SelectedWeekdays(LinearLayout container) =>
+        Enumerable.Range(0, container.ChildCount)
+            .Where(index => container.GetChildAt(index) is CheckBox { Checked: true })
+            .Select(index => (DayOfWeek)index + 1)
+            .ToList();
 
     private void ShowRemoveExerciseConfirmation(Exercise exercise)
     {
@@ -581,12 +776,13 @@ public class MainActivity : Activity
 
     private void ShowExportExerciseDialog()
     {
-        if (!adminMode || shownExercises.Count == 0) return;
+        if (!adminMode) return;
 
+        var exportableExercises = exercises.ListSorted().ToList();
+        if (exportableExercises.Count == 0) return;
         var picker = new Spinner(this);
-        picker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, shownExercises.Select(ExerciseLabel).ToList());
-        var position = SelectedExercise is { } selected ? shownExercises.FindIndex(exercise => exercise.Id == selected.Id) : 0;
-        picker.SetSelection(Math.Max(0, position));
+        picker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, exportableExercises.Select(ExerciseLabel).ToList());
+        picker.SetSelection(0);
         var dialog = new AlertDialog.Builder(this)!;
         dialog.SetTitle(Resource.String.export);
         dialog.SetMessage(GetString(Resource.String.export_range_description) + "\n\n" + GetString(Resource.String.lok_grouping_warning));
@@ -594,9 +790,9 @@ public class MainActivity : Activity
         dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
         dialog.SetPositiveButton(Resource.String.export, (_, _) =>
         {
-            if (picker.SelectedItemPosition >= 0 && picker.SelectedItemPosition < shownExercises.Count)
+            if (picker.SelectedItemPosition >= 0 && picker.SelectedItemPosition < exportableExercises.Count)
             {
-                StartCsvExport(shownExercises[picker.SelectedItemPosition]);
+                StartCsvExport(exportableExercises[picker.SelectedItemPosition]);
             }
         });
         dialog.Show();
@@ -607,7 +803,7 @@ public class MainActivity : Activity
         var entries = attendance.GetRawAttendance(exercise.Id, DateOnly.MinValue, DateOnly.MaxValue);
         pendingExportContent = new AttendanceCsvExporter().BuildExerciseCsv(
             exercise,
-            data.Participants.Where(participant => participant.ExerciseId == exercise.Id),
+            data.Participants,
             entries);
         pendingExportIsGlobal = false;
         var intent = new Intent(Intent.ActionCreateDocument);
@@ -723,16 +919,76 @@ public class MainActivity : Activity
                     return;
                 }
 
-                participants.Add(new Participant
+                if (!participants.TryAdd(new Participant
                 {
-                    ExerciseId = exercise.Id,
                     FirstName = firstName.Text.Trim(),
                     Surname = surname.Text.Trim(),
                     PersonalNumber = personalNumber.Text.Trim(),
                     IsTrainer = trainer.Checked
-                });
+                }, [exercise.Id]))
+                {
+                    Toast.MakeText(this, Resource.String.duplicate_participant, ToastLength.Long)!.Show();
+                    return;
+                }
                 SaveAndRefresh(exercise.Id);
             });
+        dialog.Show();
+    }
+
+    private void ShowAdminAddParticipantDialog()
+    {
+        if (!adminMode) return;
+
+        var form = LayoutInflater!.Inflate(Resource.Layout.dialog_participant, null)!;
+        var firstName = form.FindViewById<EditText>(Resource.Id.first_name)!;
+        var surname = form.FindViewById<EditText>(Resource.Id.surname)!;
+        var personalNumber = form.FindViewById<EditText>(Resource.Id.personal_number)!;
+        var trainer = form.FindViewById<CheckBox>(Resource.Id.trainer)!;
+        var exerciseCheckboxes = new Dictionary<Guid, CheckBox>();
+        if (form is LinearLayout container)
+        {
+            container.AddView(new TextView(this) { Text = GetString(Resource.String.add_participant_to_exercises) });
+            foreach (var exercise in exercises.ListSorted())
+            {
+                var checkBox = new CheckBox(this) { Text = ExerciseLabel(exercise) };
+                exerciseCheckboxes.Add(exercise.Id, checkBox);
+                container.AddView(checkBox);
+            }
+        }
+
+        var dialog = new AlertDialog.Builder(this)!;
+        dialog.SetTitle(Resource.String.add_user);
+        dialog.SetView(form);
+        dialog.SetNegativeButton(Resource.String.cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.save, (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(firstName.Text) || string.IsNullOrWhiteSpace(surname.Text) || string.IsNullOrWhiteSpace(personalNumber.Text))
+            {
+                Toast.MakeText(this, Resource.String.required_participant_fields, ToastLength.Long)!.Show();
+                return;
+            }
+
+            var selectedExercises = exerciseCheckboxes.Where(pair => pair.Value.Checked).Select(pair => pair.Key).ToList();
+            if (selectedExercises.Count == 0)
+            {
+                Toast.MakeText(this, Resource.String.select_exercise, ToastLength.Long)!.Show();
+                return;
+            }
+
+            if (!participants.TryAdd(new Participant
+                {
+                    FirstName = firstName.Text.Trim(),
+                    Surname = surname.Text.Trim(),
+                    PersonalNumber = personalNumber.Text.Trim(),
+                    IsTrainer = trainer.Checked
+                }, selectedExercises))
+            {
+                Toast.MakeText(this, Resource.String.duplicate_participant, ToastLength.Long)!.Show();
+                return;
+            }
+
+            SaveAndRefresh();
+        });
         dialog.Show();
     }
 
