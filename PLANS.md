@@ -72,6 +72,8 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Display a sorted exercise picker.
 - [x] Update the screen header with the selected exercise's weekday/time/name context.
 - [x] Restore a sensible selected exercise after app restart and handle an empty exercise list.
+- [x] Include a `Välj träning` placeholder in the exercise picker instead of a separate label.
+- [x] Open the date picker on the selected calendar month (using Android's zero-based month index correctly).
 
 ### 2.2 Attendance list
 
@@ -79,6 +81,10 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Move a participant between states with an accessible tap action.
 - [x] Display only first name, surname, and `YYMMDD` in each row.
 - [x] Persist each change immediately and recover correctly after recreation.
+- [x] Center the `Ej närvarande` and `Närvarande` headers within their respective list boxes.
+- [x] Display each participant as a two-line row, with the six-digit `YYMMDD` value always shown beneath the name.
+- [x] Group each attendance state into conditional `Tränare` and `Deltagare` sublists with distinct translucent backgrounds.
+- [x] Use red and green backgrounds for the `Ej närvarande` and `Närvarande` state headers.
 
 ### 2.3 Add participant flow
 
@@ -91,6 +97,7 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 - [x] Add UI/integration tests for selecting an exercise, adding a participant, and toggling attendance.
 - [ ] Manually check small and large participant lists on a representative Android device/emulator.
+- [x] Replace root horizontal padding with an outer layout margin so the entire screen is inset correctly.
 
 ## 3. Admin access and controls
 
@@ -102,12 +109,15 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Keep the PIN implementation local and document how it can be changed.
 - [x] Automatically end admin access after three minutes of inactivity.
 - [x] Ensure normal attendance use remains available without admin access.
+- [x] Change the admin inactivity timeout to one minute.
+- [x] Keep the idle-expiry notice while closing administration manually remains silent.
 
 ### 3.2 Participant removal
 
 - [x] Expose a removal affordance only in admin mode.
 - [x] Require confirmation that identifies the participant and active exercise.
 - [x] Delete the exercise-owned participant according to the retention policy from 0.2.
+- [x] Open a dedicated participant-removal page from `Ta bort deltagare` and provide its removal content there.
 
 ### 3.3 Exercise administration
 
@@ -116,11 +126,20 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Add an exercise removal picker and confirmation.
 - [x] Detect associated attendance and offer export before deletion.
 - [x] Define the cancellation/error path so no exercise is removed before the user confirms.
+- [x] Provide a time picker when adding an exercise.
 
 ### 3.4 Admin verification
 
 - [x] Test incorrect/correct PIN, expiry after inactivity, and re-locking of controls.
 - [x] Test participant and exercise removal, including exercises with attendance.
+
+### 3.5 Admin and main-layout UX refinements
+
+- [x] Open administration on its own dedicated page.
+- [x] Add a change-PIN action in administration.
+- [x] Add an explicit close-admin control that returns to the main attendance page.
+- [x] Add 5–10 px horizontal padding to the entire layout.
+- [x] Present “Ej närvarande” and “Närvarande” as clearly separated headers, with the present header right-aligned.
 
 ## 4. LOK-stöd grouping and export
 
@@ -128,7 +147,7 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 
 ### 4.1 Eligibility and policy safeguards
 
-- [ ] Confirm the participant age/eligibility rules required for LOK-stöd; they are not specified in the current requirements.
+- [x] Confirm the participant age/eligibility rules required for LOK-stöd; they are not specified in the current requirements. (Decision: no age filter; present trainers are leaders and other present attendees are participants.)
 - [x] Model any eligibility result separately from raw attendance so source data is never silently changed.
 - [x] Show a clear warning that grouping may only represent genuinely separate eligible activities, never fictitious splits.
 

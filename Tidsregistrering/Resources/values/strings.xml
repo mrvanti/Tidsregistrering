@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">Tidsregistrering</string>
     <string name="admin">Administrera</string>
+    <string name="admin_page_title">Administrera</string>
+    <string name="change_pin">Byt PIN</string>
+    <string name="close_admin">Stäng administrering</string>
+    <string name="new_pin">Ny PIN</string>
+    <string name="confirm_pin">Bekräfta ny PIN</string>
+    <string name="pin_mismatch">PIN-koderna är tomma eller matchar inte.</string>
+    <string name="pin_changed">PIN-koden har ändrats.</string>
     <string name="select_session_date">Välj träningsdatum</string>
     <string name="select_exercise">Välj träning</string>
     <string name="admin_pin_title">Administratörs-PIN</string>
@@ -44,6 +51,8 @@
     <string name="surname">Efternamn</string>
     <string name="personal_number">Personnummer (12 siffror)</string>
     <string name="trainer">Tränare</string>
+    <string name="trainers">Tränare</string>
+    <string name="participants">Deltagare</string>
     <string name="required_participant_fields">Fyll i förnamn, efternamn och personnummer.</string>
     <string name="save_failed">Kunde inte spara ändringen lokalt.</string>
     <string-array name="weekdays">

@@ -10,6 +10,7 @@ public sealed class LocalStore
     private const string PreferencesName = "tidsregistrering";
     private const string DataKey = "app_data";
     private const string SelectedExerciseKey = "selected_exercise_id";
+    private const string AdminPinKey = "admin_pin";
     private readonly ISharedPreferences preferences;
 
     public LocalStore(Context context)
@@ -67,6 +68,16 @@ public sealed class LocalStore
         if (!editor.Commit())
         {
             throw new InvalidOperationException("Could not save selected exercise.");
+        }
+    }
+
+    public string? LoadAdminPin() => preferences.GetString(AdminPinKey, null);
+
+    public void SaveAdminPin(string pin)
+    {
+        if (!preferences.Edit()!.PutString(AdminPinKey, pin)!.Commit())
+        {
+            throw new InvalidOperationException("Could not save admin PIN.");
         }
     }
 }
