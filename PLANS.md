@@ -74,6 +74,9 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Restore a sensible selected exercise after app restart and handle an empty exercise list.
 - [x] Include a `Välj träning` placeholder in the exercise picker instead of a separate label.
 - [x] Open the date picker on the selected calendar month (using Android's zero-based month index correctly).
+- [x] Sort exercises by weekday, then time, then name.
+- [x] Filter the exercise picker by the weekday of the selected session date.
+- [x] Advance a still-open app from today to the next calendar date at midnight and refresh its exercise picker.
 
 ### 2.2 Attendance list
 
@@ -85,6 +88,7 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Display each participant as a two-line row, with the six-digit `YYMMDD` value always shown beneath the name.
 - [x] Group each attendance state into conditional `Tränare` and `Deltagare` sublists with distinct translucent backgrounds.
 - [x] Use red and green backgrounds for the `Ej närvarande` and `Närvarande` state headers.
+- [x] Size visible attendance sublists to their content and use a less-transparent sublist header background.
 
 ### 2.3 Add participant flow
 
@@ -118,6 +122,8 @@ The product requirements are in `requirements.md`; the grouping policy is in `lo
 - [x] Require confirmation that identifies the participant and active exercise.
 - [x] Delete the exercise-owned participant according to the retention policy from 0.2.
 - [x] Open a dedicated participant-removal page from `Ta bort deltagare` and provide its removal content there.
+- [x] Provide an independent exercise picker on the participant-removal page.
+- [x] Format removal confirmations with the selected participant and exercise details.
 
 ### 3.3 Exercise administration
 

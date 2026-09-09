@@ -20,8 +20,8 @@
     <string name="admin_expired">Administratörsläge avslutat efter inaktivitet.</string>
     <string name="add_exercise">Lägg till träning</string>
     <string name="remove_exercise">Ta bort träning</string>
-    <string name="remove_exercise_confirmation">Ta bort %1$s och dess deltagarlista? Detta kan inte ångras.</string>
-    <string name="remove_exercise_with_attendance_confirmation">%1$s har %2$d närvaroposter. Exportera först, eller bekräfta borttagning som raderar träning, deltagarlista och närvaro permanent.</string>
+    <string name="remove_exercise_confirmation">Ta bort {0} och dess deltagarlista? Detta kan inte ångras.</string>
+    <string name="remove_exercise_with_attendance_confirmation">{0} har {1} närvaroposter. Exportera först, eller bekräfta borttagning som raderar träning, deltagarlista och närvaro permanent.</string>
     <string name="export">Exportera</string>
     <string name="export_range_description">Exporten innehåller alla registrerade datum för vald träning, rå närvaro och LOK-gruppering per datum. Ålderskontroll görs inte.</string>
     <string name="lok_grouping_warning">LOK-grupper får bara motsvara verkligt separata, stödberättigade aktiviteter. Dela aldrig en aktivitet fiktivt.</string>
@@ -44,7 +44,7 @@
     <string name="remove">Ta bort</string>
     <string name="select_participant_to_remove">Välj deltagare att ta bort.</string>
     <string name="removal_cancelled">Borttagning avbruten.</string>
-    <string name="remove_participant_confirmation">Ta bort %1$s %2$s från %3$s? Tidigare närvaro sparas för export.</string>
+    <string name="remove_participant_confirmation">Ta bort {0} {1} från {2}? Tidigare närvaro sparas för export.</string>
     <string name="absent">Ej närvarande</string>
     <string name="present">Närvarande</string>
     <string name="first_name">Förnamn</string>

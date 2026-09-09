@@ -6,8 +6,8 @@ namespace Tidsregistrering.Data;
 public sealed class ExerciseRepository(AppData data)
 {
     public IReadOnlyList<Exercise> ListSorted() => data.Exercises
-        .OrderBy(exercise => TimeOnly.TryParse(exercise.Time, out var time) ? time : TimeOnly.MaxValue)
-        .ThenBy(exercise => exercise.SwedishWeekdayOrder)
+        .OrderBy(exercise => exercise.SwedishWeekdayOrder)
+        .ThenBy(exercise => TimeOnly.TryParse(exercise.Time, out var time) ? time : TimeOnly.MaxValue)
         .ThenBy(exercise => exercise.Name, StringComparer.CurrentCultureIgnoreCase)
         .ToList();
 

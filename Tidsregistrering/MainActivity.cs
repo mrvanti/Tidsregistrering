@@ -40,10 +40,11 @@ public class MainActivity : Activity
     private Button changePinButton = null!;
     private Button closeAdminButton = null!;
     private LinearLayout removalPage = null!;
-    private TextView removalContext = null!;
+    private Spinner removalExercisePicker = null!;
     private ListView removalList = null!;
     private Button closeRemovalButton = null!;
     private List<Participant> shownRemovalParticipants = [];
+    private List<Exercise> shownRemovalExercises = [];
     private List<Exercise> shownExercises = [];
     private List<Participant> shownAbsentTrainers = [];
     private List<Participant> shownAbsentParticipants = [];
@@ -54,9 +55,12 @@ public class MainActivity : Activity
     private LinearLayout presentTrainerSection = null!;
     private LinearLayout presentParticipantSection = null!;
     private Timer? adminExpiryTimer;
+    private Timer? dateRolloverTimer;
     private bool adminMode;
     private bool removingParticipant;
     private bool refreshingExercisePicker;
+    private bool refreshingRemovalExercisePicker;
+    private bool followsCurrentDate = true;
     private string? pendingExportContent;
     private bool pendingExportIsGlobal;
     private bool attendanceExported;
@@ -100,7 +104,7 @@ public class MainActivity : Activity
         changePinButton = FindViewById<Button>(Resource.Id.change_pin_button)!;
         closeAdminButton = FindViewById<Button>(Resource.Id.close_admin_button)!;
         removalPage = FindViewById<LinearLayout>(Resource.Id.removal_page)!;
-        removalContext = FindViewById<TextView>(Resource.Id.removal_context)!;
+        removalExercisePicker = FindViewById<Spinner>(Resource.Id.removal_exercise_picker)!;
         removalList = FindViewById<ListView>(Resource.Id.removal_list)!;
         closeRemovalButton = FindViewById<Button>(Resource.Id.close_removal_button)!;
 
@@ -120,6 +124,10 @@ public class MainActivity : Activity
         closeAdminButton.Click += (_, _) => DisableAdminMode(showExpiry: false);
         closeRemovalButton.Click += (_, _) => CloseParticipantRemovalPage();
         removalList.ItemClick += (_, eventArgs) => ShowRemoveParticipantDialog(shownRemovalParticipants[eventArgs.Position]);
+        removalExercisePicker.ItemSelected += (_, _) =>
+        {
+            if (!refreshingRemovalExercisePicker) RefreshRemovalParticipants();
+        };
         addParticipantButton.Click += (_, _) => ShowAddParticipantDialog();
         exercisePicker.ItemSelected += (_, _) =>
         {
@@ -134,6 +142,7 @@ public class MainActivity : Activity
         presentParticipantList.ItemClick += (_, eventArgs) => SetAttendance(shownPresentParticipants[eventArgs.Position], false);
 
         RefreshExercises(store.LoadSelectedExerciseId());
+        ScheduleDateRollover();
     }
 
     public override bool DispatchTouchEvent(MotionEvent? ev)
@@ -149,11 +158,23 @@ public class MainActivity : Activity
     protected override void OnDestroy()
     {
         adminExpiryTimer?.Dispose();
+        dateRolloverTimer?.Dispose();
         base.OnDestroy();
+    }
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+        AdvanceDateIfNeeded();
+        ScheduleDateRollover();
     }
 
     private Exercise? SelectedExercise => exercisePicker.SelectedItemPosition > 0 && exercisePicker.SelectedItemPosition <= shownExercises.Count
         ? shownExercises[exercisePicker.SelectedItemPosition - 1]
+        : null;
+
+    private Exercise? SelectedRemovalExercise => removalExercisePicker.SelectedItemPosition > 0 && removalExercisePicker.SelectedItemPosition <= shownRemovalExercises.Count
+        ? shownRemovalExercises[removalExercisePicker.SelectedItemPosition - 1]
         : null;
 
     private void UpdateSessionDate() => FindViewById<TextView>(Resource.Id.session_date)!.Text =
@@ -166,7 +187,8 @@ public class MainActivity : Activity
             (_, eventArgs) =>
             {
                 selectedDate = new DateOnly(eventArgs.Year, eventArgs.Month + 1, eventArgs.DayOfMonth);
-                RefreshAttendance();
+                followsCurrentDate = selectedDate == DateOnly.FromDateTime(DateTime.Today);
+                RefreshExercises(SelectedExercise?.Id);
             },
             CurrentDate.Year,
             CurrentDate.Month - 1,
@@ -182,7 +204,9 @@ public class MainActivity : Activity
 
     private void RefreshExercises(Guid? selectedId = null)
     {
-        shownExercises = exercises.ListSorted().ToList();
+        shownExercises = exercises.ListSorted()
+            .Where(exercise => exercise.Weekday == CurrentDate.DayOfWeek)
+            .ToList();
         refreshingExercisePicker = true;
         try
         {
@@ -201,7 +225,7 @@ public class MainActivity : Activity
             refreshingExercisePicker = false;
         }
 
-        SaveSelectedExercise();
+        if (SelectedExercise is not null) SaveSelectedExercise();
         RefreshAttendance();
     }
 
@@ -212,7 +236,7 @@ public class MainActivity : Activity
         if (exercise is null)
         {
             exerciseContext.Text = GetString(Resource.String.no_selected_exercise);
-            emptyState.Visibility = Android.Views.ViewStates.Visible;
+            emptyState.Visibility = data.Exercises.Count == 0 ? Android.Views.ViewStates.Visible : Android.Views.ViewStates.Gone;
             addParticipantButton.Visibility = Android.Views.ViewStates.Gone;
             SetSection(absentTrainerSection, absentTrainerList, []);
             SetSection(absentParticipantSection, absentParticipantList, []);
@@ -245,6 +269,27 @@ public class MainActivity : Activity
     {
         section.Visibility = sectionParticipants.Count == 0 ? ViewStates.Gone : ViewStates.Visible;
         list.Adapter = new ParticipantListAdapter(this, sectionParticipants);
+    }
+
+    private void ScheduleDateRollover()
+    {
+        dateRolloverTimer?.Dispose();
+        var now = DateTime.Now;
+        var delay = now.Date.AddDays(1) - now;
+        dateRolloverTimer = new Timer(_ => RunOnUiThread(AdvanceDateIfNeeded), null, delay, Timeout.InfiniteTimeSpan);
+    }
+
+    private void AdvanceDateIfNeeded()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        if (followsCurrentDate && CurrentDate != today)
+        {
+            var selectedExerciseId = SelectedExercise?.Id;
+            selectedDate = today;
+            RefreshExercises(selectedExerciseId);
+        }
+
+        ScheduleDateRollover();
     }
 
     private void ShowPinDialog()
@@ -358,13 +403,35 @@ public class MainActivity : Activity
 
     private void ShowParticipantRemovalPage()
     {
-        if (!adminMode || SelectedExercise is not Exercise exercise) return;
+        if (!adminMode) return;
 
-        shownRemovalParticipants = participants.ListForExercise(exercise.Id).ToList();
-        removalContext.Text = ExerciseLabel(exercise);
-        removalList.Adapter = new ParticipantListAdapter(this, shownRemovalParticipants);
+        shownRemovalExercises = exercises.ListSorted().ToList();
+        refreshingRemovalExercisePicker = true;
+        try
+        {
+            var labels = new[] { GetString(Resource.String.select_exercise) }.Concat(shownRemovalExercises.Select(ExerciseLabel)).ToList();
+            removalExercisePicker.Adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerDropDownItem, labels);
+            var position = SelectedExercise is Exercise exercise
+                ? shownRemovalExercises.FindIndex(candidate => candidate.Id == exercise.Id) + 1
+                : 0;
+            removalExercisePicker.SetSelection(position);
+        }
+        finally
+        {
+            refreshingRemovalExercisePicker = false;
+        }
+
+        RefreshRemovalParticipants();
         adminActions.Visibility = ViewStates.Gone;
         removalPage.Visibility = ViewStates.Visible;
+    }
+
+    private void RefreshRemovalParticipants()
+    {
+        shownRemovalParticipants = SelectedRemovalExercise is Exercise exercise
+            ? participants.ListForExercise(exercise.Id).ToList()
+            : [];
+        removalList.Adapter = new ParticipantListAdapter(this, shownRemovalParticipants);
     }
 
     private void CloseParticipantRemovalPage()
@@ -407,7 +474,7 @@ public class MainActivity : Activity
 
     private void ShowRemoveParticipantDialog(Participant participant)
     {
-        if (SelectedExercise is not Exercise exercise) return;
+        if (SelectedRemovalExercise is not Exercise exercise) return;
 
         var message = string.Format(
             System.Globalization.CultureInfo.CurrentCulture,
@@ -429,7 +496,7 @@ public class MainActivity : Activity
         removingParticipant = false;
         removeParticipantButton.SetText(Resource.String.remove_participant);
         CloseParticipantRemovalPage();
-        SaveAndRefresh(exercise.Id);
+        SaveAndRefresh();
     }
 
     private void ShowAddExerciseDialog()

@@ -8,7 +8,7 @@ namespace Tidsregistrering.Tests;
 public sealed class ExerciseRepositoryTests
 {
     [TestMethod]
-    public void ListSorted_OrdersByTimeThenWeekdayThenName()
+    public void ListSorted_OrdersByWeekdayThenTimeThenName()
     {
         var data = new AppData
         {
@@ -23,7 +23,7 @@ public sealed class ExerciseRepositoryTests
 
         var names = new ExerciseRepository(data).ListSorted().Select(exercise => exercise.Name).ToList();
 
-        CollectionAssert.AreEqual(new[] { "Lunch", "Alpha", "Zebra", "Tuesday" }, names);
+        CollectionAssert.AreEqual(new[] { "Alpha", "Zebra", "Tuesday", "Lunch" }, names);
     }
 
     [TestMethod]

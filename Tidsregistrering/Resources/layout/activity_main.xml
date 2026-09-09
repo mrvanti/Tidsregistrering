@@ -26,7 +26,7 @@
     </LinearLayout>
     <LinearLayout android:id="@+id/removal_page" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:visibility="gone">
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/remove_participant" android:textAppearance="@android:style/TextAppearance.Material.Headline" />
-        <TextView android:id="@+id/removal_context" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" />
+        <Spinner android:id="@+id/removal_exercise_picker" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:contentDescription="@string/select_exercise" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/select_participant_to_remove" />
         <ListView android:id="@+id/removal_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
         <Button android:id="@+id/close_removal_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/cancel" />
@@ -37,25 +37,25 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp" android:orientation="horizontal">
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical">
             <TextView android:id="@+id/absent_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#D32F2F" android:gravity="center" android:padding="8dp" android:text="@string/absent" android:textAppearance="@android:style/TextAppearance.Material.Medium" android:textColor="#FFFFFF" android:textStyle="bold" />
-            <LinearLayout android:id="@+id/absent_trainer_section" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="#80F2E174" android:orientation="vertical" android:visibility="gone">
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:padding="6dp" android:text="@string/trainers" android:textStyle="bold" />
-                <ListView android:id="@+id/absent_trainer_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            <LinearLayout android:id="@+id/absent_trainer_section" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#80F2E174" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#CCF2E174" android:gravity="center" android:padding="6dp" android:text="@string/trainers" android:textStyle="bold" />
+                <ListView android:id="@+id/absent_trainer_list" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
-            <LinearLayout android:id="@+id/absent_participant_section" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="#80D0D6D9" android:orientation="vertical" android:visibility="gone">
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:padding="6dp" android:text="@string/participants" android:textStyle="bold" />
-                <ListView android:id="@+id/absent_participant_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            <LinearLayout android:id="@+id/absent_participant_section" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#80D0D6D9" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#CCD0D6D9" android:gravity="center" android:padding="6dp" android:text="@string/participants" android:textStyle="bold" />
+                <ListView android:id="@+id/absent_participant_list" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
         </LinearLayout>
         <View android:layout_width="1dp" android:layout_height="match_parent" android:layout_marginStart="8dp" android:layout_marginEnd="8dp" android:background="#9E9E9E" />
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical">
             <TextView android:id="@+id/present_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#388E3C" android:gravity="center" android:padding="8dp" android:text="@string/present" android:textAlignment="center" android:textAppearance="@android:style/TextAppearance.Material.Medium" android:textColor="#FFFFFF" android:textStyle="bold" />
-            <LinearLayout android:id="@+id/present_trainer_section" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="#80F2E174" android:orientation="vertical" android:visibility="gone">
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:padding="6dp" android:text="@string/trainers" android:textStyle="bold" />
-                <ListView android:id="@+id/present_trainer_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            <LinearLayout android:id="@+id/present_trainer_section" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#80F2E174" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#CCF2E174" android:gravity="center" android:padding="6dp" android:text="@string/trainers" android:textStyle="bold" />
+                <ListView android:id="@+id/present_trainer_list" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
-            <LinearLayout android:id="@+id/present_participant_section" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="#80D0D6D9" android:orientation="vertical" android:visibility="gone">
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:padding="6dp" android:text="@string/participants" android:textStyle="bold" />
-                <ListView android:id="@+id/present_participant_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            <LinearLayout android:id="@+id/present_participant_section" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#80D0D6D9" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#CCD0D6D9" android:gravity="center" android:padding="6dp" android:text="@string/participants" android:textStyle="bold" />
+                <ListView android:id="@+id/present_participant_list" android:layout_width="match_parent" android:layout_height="wrap_content" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
